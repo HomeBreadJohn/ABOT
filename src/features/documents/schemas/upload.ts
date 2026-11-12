@@ -1,8 +1,5 @@
 import { z } from "zod";
-import {
-  allowedMimeTypeSchema,
-  MAX_DOCUMENT_SIZE_BYTES,
-} from "@/contracts";
+import { allowedMimeTypeSchema, MAX_DOCUMENT_SIZE_BYTES } from "@/contracts";
 
 export { allowedMimeTypeSchema, MAX_DOCUMENT_SIZE_BYTES };
 
