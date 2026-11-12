@@ -6,6 +6,7 @@ import {
   documentLifecycleSchema,
   explanationLanguageSchema,
   informationStatusSchema,
+  lifecycleToStage,
   processingStageSchema,
   relationshipTypeSchema,
   severitySchema,
@@ -84,6 +85,43 @@ describe.each(SCHEMAS)("$name", ({ schema, accepts, rejects }) => {
 describe("documentLifecycleSchema", () => {
   it("starts with AWAITING_UPLOAD", () => {
     expect(documentLifecycleSchema.options[0]).toBe("AWAITING_UPLOAD");
+  });
+});
+
+describe("lifecycleToStage", () => {
+  it("maps pre-upload and upload states to RECEIVED", () => {
+    expect(lifecycleToStage("AWAITING_UPLOAD")).toBe("RECEIVED");
+    expect(lifecycleToStage("UPLOADED")).toBe("RECEIVED");
+  });
+
+  it("maps every OCR state to READING", () => {
+    for (const lifecycle of [
+      "OCR_PROCESSING",
+      "OCR_READY",
+      "OCR_PARTIAL",
+      "OCR_FAILED",
+    ] as const) {
+      expect(lifecycleToStage(lifecycle)).toBe("READING");
+    }
+  });
+
+  it("maps ANALYZING by job step, defaulting to UNDERSTANDING", () => {
+    expect(lifecycleToStage("ANALYZING", 1)).toBe("UNDERSTANDING");
+    expect(lifecycleToStage("ANALYZING", 2)).toBe("CHECKING_DETAILS");
+    expect(lifecycleToStage("ANALYZING", 3)).toBe("PREPARING_REPORT");
+    expect(lifecycleToStage("ANALYZING")).toBe("UNDERSTANDING");
+    expect(lifecycleToStage("ANALYZING", 99)).toBe("UNDERSTANDING");
+  });
+
+  it("returns PREPARING_REPORT for every post-analysis state", () => {
+    for (const lifecycle of [
+      "NEEDS_CORRECTION",
+      "REVIEW_REQUIRED",
+      "ANALYSIS_FAILED",
+      "COMPLETED",
+    ] as const) {
+      expect(lifecycleToStage(lifecycle)).toBe("PREPARING_REPORT");
+    }
   });
 });
 

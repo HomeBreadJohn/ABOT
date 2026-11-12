@@ -24,26 +24,31 @@ export const createDocumentRequestSchema = z.strictObject({
 export type CreateDocumentRequest = z.infer<typeof createDocumentRequestSchema>;
 
 export const createDocumentResponseSchema = z.object({
-  documentId: z.string().min(1),
-  uploadUrl: z.string().url(),
+  documentId: z.uuid(),
+  storagePath: z.string().min(1),
+  uploadToken: z.string().min(1),
+  uploadUrl: z.url(),
 });
 
 /* POST /api/documents/:id/upload-complete */
 export const uploadCompleteRequestSchema = z.strictObject({});
 export const uploadCompleteResponseSchema = z.object({
-  documentId: z.string().min(1),
+  documentId: z.uuid(),
   lifecycle: documentLifecycleSchema,
 });
 
 /* GET /api/documents */
 export const documentListItemSchema = z.object({
-  documentId: z.string().min(1),
+  documentId: z.uuid(),
   title: z.string(),
   lifecycle: documentLifecycleSchema,
   stage: processingStageSchema,
-  category: documentCategorySchema,
+  // Classification has not run for a document in AWAITING_UPLOAD.
+  category: documentCategorySchema.nullable(),
+  analysisStatus: z.enum(["NONE", "RUNNING", "SUCCEEDED", "FAILED"]),
   nextDeadline: z.string().nullable(),
   needsAttention: z.boolean(),
+  createdAt: z.string(),
 });
 export const documentListResponseSchema = z.object({
   documents: z.array(documentListItemSchema),
@@ -55,7 +60,6 @@ export const documentDetailResponseSchema = documentListItemSchema.extend({
   mimeType: allowedMimeTypeSchema,
   fileSize: z.number().int().positive(),
   originalFilename: z.string(),
-  createdAt: z.string(),
   updatedAt: z.string(),
   latestAnalysisId: z.string().nullable(),
 });
@@ -69,7 +73,7 @@ export const updateDocumentRequestSchema = z.strictObject({
 /* DELETE /api/documents/:id */
 export const deleteDocumentRequestSchema = z.strictObject({});
 export const deleteDocumentResponseSchema = z.object({
-  documentId: z.string().min(1),
+  documentId: z.uuid(),
   note: z.string(),
 });
 
@@ -79,8 +83,8 @@ export const analyzeRequestSchema = z.strictObject({
   idempotencyKey: z.string().min(1),
 });
 export const analyzeResponseSchema = z.object({
-  documentId: z.string().min(1),
-  jobId: z.string().min(1),
+  documentId: z.uuid(),
+  jobId: z.uuid(),
 });
 
 /* GET /api/documents/:id/pages/:pageNumber */
@@ -105,7 +109,7 @@ export const getAnalysisQuerySchema = z.strictObject({
 export const analysisResponseSchema = z.discriminatedUnion("state", [
   z.strictObject({
     state: z.literal("READY"),
-    analysisId: z.string().min(1),
+    analysisId: z.uuid(),
     version: z.number().int().positive(),
     analysis: analysisResultSchema,
   }),
@@ -123,8 +127,8 @@ export type AnalysisResponse = z.infer<typeof analysisResponseSchema>;
 
 /* GET /api/analyses/:id */
 export const analysisByIdResponseSchema = z.object({
-  analysisId: z.string().min(1),
-  documentId: z.string().min(1),
+  analysisId: z.uuid(),
+  documentId: z.uuid(),
   version: z.number().int().positive(),
   generatedAt: z.string(),
   analysis: analysisResultSchema,
