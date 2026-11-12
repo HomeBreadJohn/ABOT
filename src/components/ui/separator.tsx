@@ -1,3 +1,5 @@
+import * as React from "react";
+
 import { cn } from "@/lib/utils";
 
 export interface SeparatorProps extends React.ComponentProps<"div"> {
@@ -18,7 +20,7 @@ function Separator({
       aria-hidden={decorative ? true : undefined}
       aria-orientation={decorative ? undefined : orientation}
       className={cn(
-        "shrink-0 bg-slate-200",
+        "bg-hairline shrink-0",
         orientation === "horizontal" ? "h-px w-full" : "h-full w-px",
         className,
       )}

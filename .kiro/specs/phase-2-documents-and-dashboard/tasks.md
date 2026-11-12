@@ -8,8 +8,8 @@ This plan is limited to Person 1 platform/UI work. It does not change `product.m
 
 ## Tasks
 
-- [ ] 1. Establish the visual foundation and accessible application shell
-  - [-] 1.1 Implement the semantic visual tokens and typography foundation
+- [x] 1. Establish the visual foundation and accessible application shell
+  - [x] 1.1 Implement the semantic visual tokens and typography foundation
     - Update `src/app/globals.css` with the light/dark semantic tokens, Tailwind v4 `@theme inline` mappings, reduced-motion rules, focus treatment, radius, shadow, and type-scale rules from the design.
     - Update `src/app/layout.tsx` to apply the configured Geist and Source Serif variables through `next/font`, while preserving `brand.name` as the configurable brand source.
     - Use semantic token utilities only; do not add raw palette utilities or `dark:` component classes.
@@ -19,18 +19,18 @@ This plan is limited to Person 1 platform/UI work. It does not change `product.m
     - Test that both dark-mode token blocks define matching token names and values, and that reduced-motion and text-size hooks remain present.
     - Render the updated shared primitives where practical and assert visible labels, focusable controls, and semantic token usage rather than class-name-only behavior.
     - _Design: Visual Design System > Verified contrast ratios and Token wiring; Testing Strategy > Example-based unit tests and Markup/accessibility tests; product.md: §1.2, §9._
-  - [ ] 1.3 Refresh shared UI primitives without changing their public contracts
+  - [x] 1.3 Refresh shared UI primitives without changing their public contracts
     - Update `button`, `card`, `badge`, `input`, `label`, `separator`, `empty-state`, `loading-state`, `form-message`, and `presentation-value` to use semantic tokens and the shared `:focus-visible` treatment.
     - Add the native token-styled `Select`, `StatusShape`, `StatusPill`, and `Skeleton` components with accessible labels, decorative SVG shapes, and no color-only status meaning.
     - Preserve existing props and behavior unless the design explicitly adds a required prop.
     - _Design: Components and Interfaces > Component inventory; Visual Design System > Iconography/status shapes and Shape/depth/motion; product.md: §9.2, §9.3, §9.4._
-  - [ ] 1.4 Build the responsive shell and navigation frame
+  - [x] 1.4 Build the responsive shell and navigation frame
     - Update `DashboardShell` and the server-rendered sidebar content to use `brand.name`, the warm-neutral canvas, sample banner slot, one `main`, and the skip link target.
     - Add `SidebarFrame`, `SidebarNavLink`, `RecentDocumentsNav`, `AccountMenu`, `MobileTopBar`, and the redesigned `MobileNav` with expanded/rail state, `aria-expanded`, `aria-controls`, route-aware `aria-current`, Escape/scrim closing, and focus return.
     - Preserve `Settings` and sign-out access, the New upload action, and recent-document navigation while keeping the sidebar collapsed state in the documented cookie.
     - Keep Server Components as children of client shell components; do not move server-only reads or actions into client modules.
     - _Design: Architecture > Boundaries; Route map; Components and Interfaces > Component inventory and component trees; Visual Design System > App shell wireframes; product.md: §9, §16._
-  - [ ] 1.5 Add shell loading, error, identity, and mock-mode presentation
+  - [x] 1.5 Add shell loading, error, identity, and mock-mode presentation
     - Update dashboard loading and error states to use tokens and fixed safe copy.
     - Add the profile service display-name read, greeting/account initial data, `SampleDataBanner`, and mock-source indication without exposing raw errors or document content.
     - Implement `sidebar_state` cookie parsing and persistence with the documented defaults and attributes.
@@ -64,7 +64,7 @@ This plan is limited to Person 1 platform/UI work. It does not change `product.m
     - _Design: Correctness Properties 18–19; Testing Strategy > Property-based tests; product.md: §5.2, §9.2._
 
 - [ ] 3. Establish the documents data boundary and mock-first upload flow
-  - [-] 3.1 Add documents environment resolution and the server-only service factory
+  - [x] 3.1 Add documents environment resolution and the server-only service factory
     - Add `src/lib/env/documents.ts` with pure resolvers for `DOCUMENTS_DATA_SOURCE`, `DOCUMENTS_SCHEMA_PROFILE`, and `DOCUMENTS_MOCK_TODAY`, defaulting to mock/initial/fixed mock date as designed.
     - Add the `DocumentsService`, `DocumentsServiceError`, safe error-code messages, capability types, upload transport types, deadline signals, and list result types without changing shared contracts.
     - Add the cached server-only `getDocumentsService()` factory; any value other than trimmed case-insensitive `supabase` must select mock mode.

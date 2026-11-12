@@ -1,8 +1,8 @@
+import { Suspense } from "react";
 import { ArrowUpRight, FileText, ListChecks, Upload } from "lucide-react";
 import Link from "next/link";
 
-import { brand } from "@/config/brand";
-import { PageHeader } from "@/components/shared/page-header";
+import { Greeting } from "@/features/dashboard/components/greeting";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -39,11 +39,24 @@ const areas = [
 export default function DashboardPage() {
   return (
     <div className="mx-auto max-w-6xl min-w-0">
-      <PageHeader
-        eyebrow="Workspace"
-        title={`Welcome to ${brand.name}`}
-        description="This foundation is ready for document-centric workflows as the product direction becomes clearer."
-      />
+      <div className="mb-6 max-w-2xl min-w-0 sm:mb-8">
+        <p className="text-body-sm text-ink-muted mb-2 font-medium">
+          Workspace
+        </p>
+        <Suspense
+          fallback={
+            <h1 className="text-display text-ink font-serif font-medium tracking-tight">
+              Welcome back
+            </h1>
+          }
+        >
+          <Greeting />
+        </Suspense>
+        <p className="text-ink-muted mt-2">
+          This foundation is ready for document-centric workflows as the product
+          direction becomes clearer.
+        </p>
+      </div>
       <Card className="mb-6 border-slate-300 bg-slate-950 text-white">
         <CardContent className="flex flex-col gap-5 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-6">
           <div>

@@ -1,59 +1,66 @@
+import { FileText, LayoutDashboard, Plus } from "lucide-react";
 import Link from "next/link";
-import { FileText, LayoutDashboard, Settings } from "lucide-react";
 
+import { AccountMenu } from "@/components/layout/account-menu";
+import { RecentDocumentsNav, type RecentDocumentNavItem } from "@/components/layout/recent-documents-nav";
+import { SidebarNavLink } from "@/components/layout/sidebar-nav-link";
 import { brand } from "@/config/brand";
-import { Separator } from "@/components/ui/separator";
 
 const navigation = [
-  { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
+  { href: "/dashboard", label: "Home", icon: LayoutDashboard },
   { href: "/documents", label: "Documents", icon: FileText },
-  { href: "/settings", label: "Settings", icon: Settings },
-];
+] as const;
 
-export function Sidebar({ mobile = false }: { mobile?: boolean }) {
+export function Sidebar({
+  recentDocuments,
+  displayName,
+  id = "sidebar-navigation",
+  instanceId = "desktop",
+}: Readonly<{
+  recentDocuments?: readonly RecentDocumentNavItem[];
+  displayName?: string | null;
+  id?: string;
+  instanceId?: string;
+}>) {
   return (
     <aside
-      className={
-        mobile
-          ? "flex min-h-0 w-full flex-1 flex-col bg-white"
-          : "hidden border-r border-slate-200 bg-white lg:flex lg:w-64 lg:flex-col"
-      }
+      id={id}
+      className="sidebar-content flex min-h-0 w-full flex-1 flex-col bg-surface-sunken"
     >
-      <div className="flex h-16 items-center px-5">
+      <div className="sidebar-brand-row flex h-16 shrink-0 items-center px-4">
         <Link
           href="/dashboard"
-          className="flex items-center gap-2.5 rounded-lg focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-950 focus-visible:outline-none"
+          className="flex min-w-0 items-center gap-2.5 rounded-md focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-focus"
           aria-label={`${brand.name} home`}
         >
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-950 text-sm font-semibold text-white">
-            D
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-accent text-sm font-semibold text-on-accent">
+            {brand.name.slice(0, 1).toUpperCase()}
           </span>
-          <span className="font-semibold tracking-tight text-slate-950">
+          <span className="sidebar-label min-w-0 truncate font-semibold tracking-tight text-ink">
             {brand.name}
           </span>
         </Link>
       </div>
-      <Separator />
-      <nav
-        className="flex-1 space-y-1 p-3"
-        aria-label={mobile ? "Mobile navigation" : "Primary navigation"}
-      >
-        {navigation.map(({ href, label, icon: Icon }) => (
-          <Link
-            key={href}
-            href={href}
-            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-950 focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-950 focus-visible:outline-none"
-          >
-            <Icon className="h-4 w-4" aria-hidden="true" />
-            {label}
-          </Link>
+
+      <div className="px-3 pb-3">
+        <Link
+          href="/documents/new"
+          className="flex min-h-11 items-center justify-center gap-2 rounded-md bg-accent px-3 text-body-sm font-medium text-on-accent transition-colors duration-150 ease-standard hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-focus"
+          title="New upload"
+        >
+          <Plus className="h-5 w-5 shrink-0" strokeWidth={1.75} aria-hidden="true" />
+          <span className="sidebar-label">New upload</span>
+        </Link>
+      </div>
+
+      <nav className="space-y-1 px-3" aria-label="Primary navigation">
+        {navigation.map(({ href, label, icon }) => (
+          <SidebarNavLink key={href} href={href} label={label} icon={icon} />
         ))}
       </nav>
-      <div className="max-w-xs p-4 sm:max-w-sm">
-        <p className="text-xs leading-5 text-slate-600">
-          {brand.temporaryNotice}
-        </p>
-      </div>
+
+      <RecentDocumentsNav documents={recentDocuments} />
+      <AccountMenu displayName={displayName} idSuffix={instanceId} />
     </aside>
   );
 }

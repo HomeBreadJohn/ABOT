@@ -1,5 +1,7 @@
 import "server-only";
 
+import { cache } from "react";
+
 import {
   preferredLanguageSchema,
   type PreferredLanguageInput,
@@ -103,6 +105,39 @@ function toCurrentProfile(value: unknown): CurrentProfile {
     preferredLanguage: parseStoredPreferredLanguage(preferredLanguage),
   };
 }
+
+function normalizeDisplayName(value: unknown): string | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const firstWord = value.trim().split(/\s+/u)[0] ?? "";
+  return firstWord.slice(0, 40) || null;
+}
+
+/**
+ * Reads only the current user's first name for shell identity UI. Profile
+ * failures are intentionally quiet here so the shell can use its nameless
+ * greeting and Account initial fallback without exposing database details.
+ */
+export const getCurrentDisplayName = cache(async (): Promise<string | null> => {
+  try {
+    const { supabase, userId } = await getAuthenticatedProfileContext();
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("full_name")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (error) {
+      return null;
+    }
+
+    return normalizeDisplayName(data?.full_name);
+  } catch {
+    return null;
+  }
+});
 
 /**
  * Reads the current user's profile without accepting a client-controlled owner

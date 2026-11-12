@@ -15,7 +15,7 @@ function LoadingState({
     <div
       {...props}
       className={cn(
-        "flex items-center gap-3 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-700",
+        "border-hairline bg-surface-sunken text-body-sm text-ink-muted flex items-center gap-3 rounded-md border px-4 py-3",
         className,
       )}
       role="status"
@@ -25,7 +25,7 @@ function LoadingState({
     >
       <span
         aria-hidden="true"
-        className="h-4 w-4 animate-spin rounded-full border-2 border-slate-500 border-t-transparent"
+        className="border-tone-informative-fg h-4 w-4 animate-spin rounded-full border-2 border-t-transparent"
       />
       <span>{label}</span>
     </div>

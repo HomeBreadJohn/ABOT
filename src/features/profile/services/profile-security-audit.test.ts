@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   PROFILE_SERVICE_ERROR_CODES,
+  getCurrentDisplayName,
   getCurrentProfile,
   updateCurrentPreferredLanguage,
 } from "@/features/profile/services/profile-service";
@@ -51,7 +52,7 @@ function configureSupabase({
   authError = null,
 }: {
   userId?: string;
-  profile?: { preferred_language: string } | null;
+  profile?: { preferred_language: string; full_name?: string } | null;
   updatedProfile?: { preferred_language: string } | null;
   authError?: Error | null;
 } = {}): MockSupabase {
@@ -101,6 +102,17 @@ function migration(name: string) {
 describe("profile ownership security audit: profile-service.ts", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  it("reads a safe first-name display value from the session profile", async () => {
+    const sessionUserId = "session-user-id";
+    const supabase = configureSupabase({
+      userId: sessionUserId,
+      profile: { preferred_language: "en", full_name: "  Ana Santos  " },
+    });
+
+    await expect(getCurrentDisplayName()).resolves.toBe("Ana");
+    expect(supabase.profileSelectEq).toHaveBeenCalledWith("id", sessionUserId);
   });
 
   it("derives profile reads from the authenticated session identifier", async () => {

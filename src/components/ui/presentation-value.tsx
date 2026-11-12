@@ -9,11 +9,14 @@ import {
 import { cn } from "@/lib/utils";
 
 const toneClasses: Record<PresentationView["tone"], string> = {
-  neutral: "border-slate-300 bg-slate-50 text-slate-700",
-  positive: "border-emerald-300 bg-emerald-50 text-emerald-800",
-  informative: "border-sky-300 bg-sky-50 text-sky-800",
-  caution: "border-amber-300 bg-amber-50 text-amber-900",
-  critical: "border-rose-300 bg-rose-50 text-rose-800",
+  neutral: "border-tone-neutral-border bg-tone-neutral-bg text-tone-neutral-fg",
+  positive:
+    "border-tone-positive-border bg-tone-positive-bg text-tone-positive-fg",
+  informative:
+    "border-tone-informative-border bg-tone-informative-bg text-tone-informative-fg",
+  caution: "border-tone-caution-border bg-tone-caution-bg text-tone-caution-fg",
+  critical:
+    "border-tone-critical-border bg-tone-critical-bg text-tone-critical-fg",
 };
 
 type PresentationValueBaseProps = Omit<
@@ -56,7 +59,7 @@ function PresentationValue({
     <span
       aria-label={props["aria-label"] ?? accessibleLabel}
       className={cn(
-        "inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm font-medium",
+        "text-body-sm inline-flex items-center gap-2 rounded-md border px-3 py-1.5 font-medium",
         toneClasses[view.tone],
         className,
       )}
@@ -66,7 +69,7 @@ function PresentationValue({
     >
       {view.categoryLabel ? (
         <span
-          className="border-r border-current/30 pr-2 text-xs font-semibold tracking-wide uppercase"
+          className="text-caption border-r border-current/30 pr-2 font-semibold tracking-wide uppercase"
           data-slot="presentation-category"
         >
           {view.categoryLabel}

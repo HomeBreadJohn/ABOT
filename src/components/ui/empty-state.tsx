@@ -25,25 +25,20 @@ function EmptyState({
       {...props}
       aria-labelledby={headingId}
       className={cn(
-        "flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-400 bg-slate-50 px-4 py-8 text-center sm:px-6 sm:py-10",
+        "border-strong bg-surface-sunken flex flex-col items-center justify-center rounded-lg border border-dashed px-4 py-8 text-center sm:px-6 sm:py-10",
         className,
       )}
     >
       <span
         aria-hidden="true"
-        className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-300 text-lg font-semibold text-slate-600"
+        className="border-strong text-ink-muted mb-4 inline-flex h-10 w-10 items-center justify-center rounded-full border text-lg font-semibold"
       >
         ···
       </span>
-      <h2
-        id={headingId}
-        className="text-lg font-semibold tracking-tight text-slate-950"
-      >
+      <h2 id={headingId} className="text-heading text-ink tracking-tight">
         {title}
       </h2>
-      <p className="mt-2 max-w-md text-sm leading-6 text-slate-600">
-        {description}
-      </p>
+      <p className="text-body-sm text-ink-muted mt-2 max-w-md">{description}</p>
       {action ? <div className="mt-5">{action}</div> : null}
     </section>
   );

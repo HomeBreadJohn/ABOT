@@ -21,12 +21,12 @@ function FormMessage({
     <p
       {...props}
       className={cn(
-        "flex items-start gap-2 rounded-lg border px-3 py-2 text-sm",
+        "text-body-sm flex items-start gap-2 rounded-md border px-3 py-2",
         isError
-          ? "border-rose-200 bg-rose-50 text-rose-800"
+          ? "border-tone-critical-border bg-tone-critical-bg text-tone-critical-fg"
           : variant === "success"
-            ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-            : "border-slate-200 bg-slate-50 text-slate-700",
+            ? "border-tone-positive-border bg-tone-positive-bg text-tone-positive-fg"
+            : "border-tone-neutral-border bg-tone-neutral-bg text-tone-neutral-fg",
         className,
       )}
       role={isError ? "alert" : "status"}

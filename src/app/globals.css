@@ -251,3 +251,38 @@ textarea {
     scroll-behavior: auto !important;
   }
 }
+.sidebar-frame[data-collapsed="true"] {
+  width: 4rem;
+}
+
+.sidebar-frame[data-collapsed="true"] .sidebar-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.sidebar-frame[data-collapsed="true"] .sidebar-brand-row,
+.sidebar-frame[data-collapsed="true"] .sidebar-nav-link,
+.sidebar-frame[data-collapsed="true"] .sidebar-account > button {
+  justify-content: center;
+  padding-right: 0.5rem;
+  padding-left: 0.5rem;
+}
+
+.sidebar-frame[data-collapsed="true"] .sidebar-collapsed-glyph {
+  display: inline;
+}
+
+.sidebar-frame[data-collapsed="true"] .sidebar-account-menu {
+  position: absolute;
+  bottom: 0.75rem;
+  left: calc(100% + 0.5rem);
+  z-index: 20;
+  width: 14rem;
+}
