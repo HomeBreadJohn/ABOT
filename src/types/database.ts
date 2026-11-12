@@ -301,14 +301,14 @@ isOneToOne: false
                   ]
                 },"ocr_corrections": {
                   Row: {
-                    "corrected_value": string,"correction_status": string,"created_at": string,"document_id": string,"id": string,"original_value": string,"page_number": number,"updated_at": string,"user_id": string
+                    "corrected_value": string | null,"correction_status": string,"created_at": string,"document_id": string,"id": string,"original_value": string,"page_number": number,"updated_at": string,"user_id": string,"word_start": number,"word_end": number
                   }
                   ComputedFields: never
                   Insert: {
-                    "corrected_value": string,"correction_status"?: string,"created_at"?: string,"document_id": string,"id"?: string,"original_value": string,"page_number": number,"updated_at"?: string,"user_id": string
+                    "corrected_value"?: string | null,"correction_status"?: string,"created_at"?: string,"document_id": string,"id"?: string,"original_value": string,"page_number": number,"updated_at"?: string,"user_id": string,"word_start"?: number,"word_end"?: number
                   }
                   Update: {
-                    "corrected_value"?: string,"correction_status"?: string,"created_at"?: string,"document_id"?: string,"id"?: string,"original_value"?: string,"page_number"?: number,"updated_at"?: string,"user_id"?: string
+                    "corrected_value"?: string | null,"correction_status"?: string,"created_at"?: string,"document_id"?: string,"id"?: string,"original_value"?: string,"page_number"?: number,"updated_at"?: string,"user_id"?: string,"word_start"?: number,"word_end"?: number
                   }
                   Relationships: [
                     {
