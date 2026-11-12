@@ -24,8 +24,8 @@ export function MobileNav() {
         )}
       </Button>
       {open ? (
-        <div className="fixed inset-0 z-50 bg-white">
-          <div className="flex h-16 items-center justify-end border-b border-slate-200 px-4">
+        <div className="fixed inset-0 z-50 bg-surface">
+          <div className="flex h-16 items-center justify-end border-b border-ink-200 px-4">
             <Button
               variant="ghost"
               size="sm"

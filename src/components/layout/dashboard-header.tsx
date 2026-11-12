@@ -4,10 +4,10 @@ import { SignOutButton } from "@/components/shared/sign-out-button";
 
 export function DashboardHeader() {
   return (
-    <header className="flex h-16 items-center justify-between border-b border-slate-200 bg-white px-4 sm:px-6">
+    <header className="flex h-16 items-center justify-between border-b border-ink-200 bg-surface/80 px-4 backdrop-blur-sm sm:px-6">
       <div className="flex items-center gap-3">
         <MobileNav />
-        <p className="text-sm text-slate-500">{brand.shortDescription}</p>
+        <p className="text-sm text-ink-500">{brand.shortDescription}</p>
       </div>
       <SignOutButton />
     </header>

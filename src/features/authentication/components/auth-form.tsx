@@ -51,15 +51,15 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
   }
 
   return (
-    <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+    <div className="w-full max-w-md rounded-2xl border border-ink-200 bg-surface p-6 shadow-sm sm:p-8">
       <div className="mb-8">
-        <Link href="/" className="text-sm font-semibold text-slate-950">
+        <Link href="/" className="text-sm font-semibold text-brand-800">
           {brand.name}
         </Link>
-        <h1 className="mt-6 text-2xl font-semibold tracking-tight text-slate-950">
+        <h1 className="mt-6 text-2xl font-semibold tracking-tight text-ink-950">
           {isRegister ? "Create your account" : "Welcome back"}
         </h1>
-        <p className="mt-2 text-sm leading-6 text-slate-500">
+        <p className="mt-2 text-sm leading-6 text-ink-500">
           {isRegister
             ? "Create a secure workspace for your documents."
             : "Sign in to continue to your document workspace."}
@@ -93,7 +93,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
         </div>
         {error ? (
           <p
-            className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700"
+            className="rounded-lg bg-danger/8 px-3 py-2 text-sm text-danger"
             role="alert"
           >
             {error}
@@ -101,7 +101,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
         ) : null}
         {message ? (
           <p
-            className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700"
+            className="rounded-lg bg-success/10 px-3 py-2 text-sm text-success"
             role="status"
           >
             {message}
@@ -115,10 +115,10 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
               : "Sign in"}
         </Button>
       </form>
-      <p className="mt-6 text-center text-sm text-slate-500">
+      <p className="mt-6 text-center text-sm text-ink-500">
         {isRegister ? "Already have an account?" : "Need an account?"}{" "}
         <Link
-          className="font-medium text-slate-950 underline underline-offset-4"
+          className="font-medium text-brand-800 underline underline-offset-4 hover:text-brand-900"
           href={isRegister ? "/login" : "/register"}
         >
           {isRegister ? "Sign in" : "Register"}

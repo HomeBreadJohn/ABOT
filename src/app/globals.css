@@ -1,23 +1,107 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/*
+  ABOT color system.
+  Indigo-tinted ink on a cool paper neutral, with a single warm amber accent
+  carrying the primary action, links, and focus. Indigo reads official and
+  trustworthy without the overused teal or corporate blue; amber nods to
+  Filipino warmth and keeps attention where the action is.
+  Authored in OKLCH so lightness and chroma stay predictable across the ramp.
+*/
+@theme {
+  --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+
+  /* Neutral ramp: indigo-tinted ink on a faintly cool paper */
+  --color-ink-50: oklch(0.984 0.004 275);
+  --color-ink-100: oklch(0.966 0.006 275);
+  --color-ink-200: oklch(0.922 0.009 275);
+  --color-ink-300: oklch(0.858 0.013 275);
+  --color-ink-400: oklch(0.704 0.019 273);
+  --color-ink-500: oklch(0.52 0.024 271);
+  --color-ink-600: oklch(0.44 0.028 269);
+  --color-ink-700: oklch(0.356 0.032 268);
+  --color-ink-800: oklch(0.262 0.034 267);
+  --color-ink-900: oklch(0.205 0.036 266);
+  --color-ink-950: oklch(0.15 0.034 266);
+
+  /* Brand accent: warm amber / marigold */
+  --color-brand-50: oklch(0.97 0.03 80);
+  --color-brand-100: oklch(0.93 0.06 80);
+  --color-brand-200: oklch(0.88 0.1 79);
+  --color-brand-300: oklch(0.83 0.13 78);
+  --color-brand-400: oklch(0.78 0.15 73);
+  --color-brand-500: oklch(0.72 0.155 66);
+  --color-brand-600: oklch(0.63 0.15 58);
+  --color-brand-700: oklch(0.53 0.13 54);
+  --color-brand-800: oklch(0.44 0.105 52);
+  --color-brand-900: oklch(0.37 0.085 52);
+
+  /* Semantic roles */
+  --color-background: var(--color-ink-50);
+  --color-foreground: var(--color-ink-950);
+  --color-surface: oklch(1 0 0);
+  --color-muted: var(--color-ink-500);
+  --color-border: var(--color-ink-200);
+  --color-ring: var(--color-brand-700);
+
+  --color-success: oklch(0.56 0.11 160);
+  --color-warning: oklch(0.7 0.15 70);
+  --color-danger: oklch(0.56 0.2 25);
+}
+
 :root {
   color-scheme: light;
-  font-family: Arial, Helvetica, sans-serif;
+  --background: var(--color-background);
+  --foreground: var(--color-foreground);
 }
 
 * {
-  border-color: var(--color-slate-200);
+  border-color: var(--color-border);
 }
 
 body {
   margin: 0;
-  background: white;
-  color: var(--color-slate-950);
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 button,
 a,
 input {
   -webkit-tap-highlight-color: transparent;
+}
+
+/* Browser surfaces carry the design too */
+::selection {
+  background: var(--color-brand-200);
+  color: var(--color-ink-950);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 2px;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-ink-300) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--color-ink-300);
+  border: 2px solid var(--color-background);
+  border-radius: 9999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--color-ink-400);
 }

@@ -37,15 +37,14 @@ export default function DashboardPage() {
   return (
     <div className="mx-auto max-w-6xl">
       <PageHeader
-        eyebrow="Workspace"
         title={`Welcome to ${brand.name}`}
         description="This foundation is ready for document-centric workflows as the product direction becomes clearer."
       />
-      <Card className="mb-6 border-slate-300 bg-slate-950 text-white">
+      <Card className="mb-6 border-transparent bg-ink-950 text-white">
         <CardContent className="flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="font-medium">Your workspace is ready.</p>
-            <p className="mt-1 text-sm text-slate-300">
+            <p className="mt-1 text-sm text-ink-300">
               Product workflows and AI processing will be added after
               requirements are finalized.
             </p>
@@ -62,8 +61,8 @@ export default function DashboardPage() {
         {areas.map(({ title, description, icon: Icon, href }) => (
           <Card key={title}>
             <CardHeader>
-              <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100">
-                <Icon className="h-5 w-5 text-slate-700" aria-hidden="true" />
+              <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-brand-100 text-brand-800">
+                <Icon className="h-5 w-5" aria-hidden="true" />
               </div>
               <CardTitle>{title}</CardTitle>
               <CardDescription>{description}</CardDescription>

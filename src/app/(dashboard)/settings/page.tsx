@@ -11,7 +11,6 @@ export default function SettingsPage() {
   return (
     <div className="mx-auto max-w-4xl">
       <PageHeader
-        eyebrow="Workspace"
         title="Settings"
         description="Account and workspace preferences will be added as the product requirements are finalized."
       />
@@ -23,7 +22,7 @@ export default function SettingsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-6 text-sm text-slate-500">
+          <div className="rounded-xl border border-dashed border-ink-300 bg-ink-50 p-6 text-sm text-ink-500">
             Settings are intentionally limited in this foundation release.
           </div>
         </CardContent>
