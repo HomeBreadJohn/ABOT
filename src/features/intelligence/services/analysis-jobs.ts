@@ -32,6 +32,7 @@ import { RealAnalysisEngine } from "@/features/intelligence/services/real-analys
 import { getChatProvider } from "@/lib/providers";
 import { getProviderEnv } from "@/lib/env/server";
 import { registerTranslateHandler } from "@/features/intelligence/services/translate-explanations";
+import { registerCrossAnalyzeHandler } from "@/features/relationships/services/cross-analysis";
 
 type AnalysisOutcome = "COMPLETED" | "REVIEW_REQUIRED" | "NEEDS_CORRECTION";
 
@@ -493,4 +494,5 @@ export function registerAnalysisHandlers(): void {
     makeReanalyzeHandler(defaultReanalyzeDeps(admin, engine)),
   );
   registerTranslateHandler();
+  registerCrossAnalyzeHandler();
 }
