@@ -1,0 +1,1 @@
+-- No demo records are seeded. User-owned data must only be created through authenticated flows.
