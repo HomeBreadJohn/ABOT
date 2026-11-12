@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 
 import { DashboardShell } from "@/components/layout/dashboard-shell";
 import { DashboardLoading } from "@/components/shared/dashboard-loading";
-import { createClient } from "@/lib/supabase/server";
+import { getServerAuthState } from "@/lib/supabase/server";
 
 export default function DashboardLayout({
   children,
@@ -18,10 +18,11 @@ export default function DashboardLayout({
 async function AuthenticatedDashboard({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const supabase = await createClient();
-  const { data } = await supabase.auth.getClaims();
+  const { claims, hasSessionCookie } = await getServerAuthState();
 
-  if (!data?.claims) redirect("/login");
+  if (!claims) {
+    redirect(hasSessionCookie ? "/login?reason=session-expired" : "/login");
+  }
 
   return <DashboardShell>{children}</DashboardShell>;
 }

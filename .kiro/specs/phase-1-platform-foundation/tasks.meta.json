@@ -1,0 +1,418 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1.1 Define the profile language vocabulary and validation boundary": [
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794498400560
+      },
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794498411431
+      },
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794498785345
+      }
+    ],
+    "1.2 Define the generic presentation adapter contract": [
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794498400699
+      },
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794498411864
+      },
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794498785547
+      }
+    ],
+    "2.1 Normalize authentication failures into safe retryable categories": [
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794498400829
+      },
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794498793880
+      },
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794499268817
+      }
+    ],
+    "2.2 Preserve the server-authoritative protected-route guard and expired-session redirect": [
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794498400898
+      },
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794499279809
+      },
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794499629758
+      }
+    ],
+    "2.3 Wire accessible auth and sign-out feedback": [
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794498401000
+      },
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794499280125
+      },
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794499630242
+      }
+    ],
+    "3.1 Add a profile-language database migration without changing analysis tables": [
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794498401133
+      },
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794498794182
+      },
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794499269367
+      }
+    ],
+    "3.2 Implement the server-only current-profile service": [
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794498401216
+      },
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794499280406
+      },
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794499630628
+      }
+    ],
+    "3.3 Add the profile route handler": [
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794498401296
+      },
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794499924324
+      },
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794500669842
+      }
+    ],
+    "3.4 Replace the settings placeholder with the preferred-language UI": [
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794498401399
+      },
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794499924510
+      },
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794500670193
+      }
+    ],
+    "4.1 Complete the independent shared UI primitive set": [
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794498401499
+      },
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794498794380
+      },
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794499269580
+      }
+    ],
+    "4.2 Implement the reusable presentation component": [
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794498401786
+      },
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794499280704
+      },
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794499630832
+      }
+    ],
+    "5.1 Define deterministic primitive preview data with explicit sample labeling": [
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794498401918
+      },
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794498794771
+      },
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794499269848
+      }
+    ],
+    "5.2 Compose the preview into an existing authenticated foundation surface": [
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794498402116
+      },
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794499280904
+      },
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794499631724
+      }
+    ],
+    "6.1 Normalize page landmarks, headings, and navigation labels": [
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794498402219
+      },
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794498795316
+      },
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794499270092
+      }
+    ],
+    "6.2 Make keyboard focus and asynchronous interaction behavior consistent": [
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794498402289
+      },
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794499640042
+      },
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794499919743
+      }
+    ],
+    "6.3 Tune responsive layout and contrast for foundation surfaces": [
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794498402372
+      },
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794499924712
+      },
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794500670650
+      }
+    ],
+    "7.1 Add automated profile ownership and policy-shape audit coverage": [
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794498402455
+      },
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794499924843
+      },
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794500671503
+      }
+    ],
+    "7.2 Add server-only secret boundary checks": [
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794498402550
+      },
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794499925016
+      },
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794500671711
+      }
+    ],
+    "8.1 Keep five repository validation commands single-run and non-interactive": [
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794498402786
+      },
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794498412382
+      },
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794498785894
+      }
+    ],
+    "9. Checkpoint: ensure all required implementation and optional verification tasks pass": [
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794498403001
+      },
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794500680080
+      },
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794501173496
+      }
+    ],
+    "10. Checkpoint: confirm Phase 1 remains independent of Person 2's analysis contract": [
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794498403085
+      },
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794501177810
+      },
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794501370618
+      }
+    ],
+    "1. Establish shared foundation contracts and test seams": [
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794498785641
+      }
+    ],
+    "8. Complete validation wiring and regression preservation": [
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794498785971
+      }
+    ],
+    "2. Harden authentication and protected-session behavior": [
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794499630400
+      }
+    ],
+    "4. Complete shared UI primitives and generic presentation components": [
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794499630993
+      }
+    ],
+    "5. Establish the mock-only foundation preview boundary": [
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794499632010
+      }
+    ],
+    "3. Implement the profile preferred-language service and settings flow": [
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794500670303
+      }
+    ],
+    "6. Apply accessibility, keyboard, responsive, and contrast groundwork": [
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794500670777
+      }
+    ],
+    "7. Encode ownership, RLS, and secret-handling audit checks": [
+      {
+        "executionId": "79b391d3-e6ed-486b-8cb9-5ae185623d52",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794500671848
+      }
+    ]
+  }
+}

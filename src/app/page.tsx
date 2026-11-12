@@ -6,32 +6,37 @@ import { Button } from "@/components/ui/button";
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen min-w-0 bg-white">
       <header className="border-b border-slate-100">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
-          <Link
-            href="/"
-            className="font-semibold tracking-tight text-slate-950"
+        <div className="mx-auto max-w-6xl px-4 py-4 sm:px-6 sm:py-5">
+          <nav
+            className="flex min-w-0 flex-wrap items-center justify-between gap-3"
+            aria-label="Public navigation"
           >
-            {brand.name}
-          </Link>
-          <div className="flex items-center gap-2">
-            <Button asChild variant="ghost" size="sm">
-              <Link href="/login">Sign in</Link>
-            </Button>
-            <Button asChild size="sm">
-              <Link href="/register">Get started</Link>
-            </Button>
-          </div>
+            <Link
+              href="/"
+              className="min-w-0 truncate font-semibold tracking-tight text-slate-950"
+            >
+              {brand.name}
+            </Link>
+            <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+              <Button asChild variant="ghost" size="sm">
+                <Link href="/login">Sign in</Link>
+              </Button>
+              <Button asChild size="sm">
+                <Link href="/register">Get started</Link>
+              </Button>
+            </div>
+          </nav>
         </div>
       </header>
-      <section className="mx-auto grid max-w-6xl gap-12 px-6 py-20 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:py-28">
+      <section className="mx-auto grid max-w-6xl min-w-0 gap-10 px-4 py-16 sm:gap-12 sm:px-6 sm:py-20 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:py-28">
         <div>
           <p className="mb-5 inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5 text-sm font-medium text-slate-600">
             <Sparkles className="h-4 w-4" aria-hidden="true" /> A calmer way to
             work with documents
           </p>
-          <h1 className="max-w-2xl text-5xl font-semibold tracking-tight text-slate-950 sm:text-6xl">
+          <h1 className="max-w-2xl text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
             {brand.tagline}
           </h1>
           <p className="mt-6 max-w-xl text-lg leading-8 text-slate-500">
@@ -50,7 +55,7 @@ export default function HomePage() {
             </Button>
           </div>
         </div>
-        <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6 sm:p-8">
+        <div className="min-w-0 rounded-3xl border border-slate-200 bg-slate-50 p-4 sm:p-8">
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100">

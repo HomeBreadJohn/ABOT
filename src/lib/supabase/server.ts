@@ -1,3 +1,5 @@
+import "server-only";
+
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
@@ -27,4 +29,49 @@ export async function createClient() {
       },
     },
   );
+}
+
+type VerifiedClaims = Record<string, unknown> & {
+  sub: string;
+  exp?: number;
+};
+
+function hasValidClaims(claims: unknown): claims is VerifiedClaims {
+  if (!claims || typeof claims !== "object") return false;
+
+  const candidate = claims as Record<string, unknown>;
+  if (typeof candidate.sub !== "string" || candidate.sub.length === 0) {
+    return false;
+  }
+
+  if (candidate.exp === undefined) return true;
+
+  return (
+    typeof candidate.exp === "number" &&
+    Number.isFinite(candidate.exp) &&
+    candidate.exp > Math.floor(Date.now() / 1000)
+  );
+}
+
+function hasSupabaseAuthCookie(cookieNames: string[]) {
+  return cookieNames.some((name) => /^sb-.+-auth-token(?:\.\d+)?$/.test(name));
+}
+
+export async function getServerAuthState() {
+  const cookieStore = await cookies();
+  const hasSessionCookie = hasSupabaseAuthCookie(
+    cookieStore.getAll().map(({ name }) => name),
+  );
+  const supabase = await createClient();
+
+  try {
+    const { data } = await supabase.auth.getClaims();
+
+    return {
+      claims: hasValidClaims(data?.claims) ? data.claims : null,
+      hasSessionCookie,
+    };
+  } catch {
+    return { claims: null, hasSessionCookie };
+  }
 }

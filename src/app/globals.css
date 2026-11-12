@@ -6,14 +6,28 @@
   font-family: Arial, Helvetica, sans-serif;
 }
 
-* {
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
   border-color: var(--color-slate-200);
+}
+
+html {
+  min-width: 320px;
 }
 
 body {
   margin: 0;
+  min-width: 0;
+  overflow-x: clip;
   background: white;
   color: var(--color-slate-950);
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-slate-950);
+  outline-offset: 3px;
 }
 
 button,

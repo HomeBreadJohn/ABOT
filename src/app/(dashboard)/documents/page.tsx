@@ -6,14 +6,14 @@ import { Card, CardContent } from "@/components/ui/card";
 
 export default function DocumentsPage() {
   return (
-    <div className="mx-auto max-w-6xl">
+    <div className="mx-auto max-w-6xl min-w-0">
       <PageHeader
         eyebrow="Workspace"
         title="Documents"
         description="A private place for the documents you choose to organize and understand."
       />
       <Card>
-        <CardContent className="flex flex-col items-center justify-center px-6 py-16 text-center">
+        <CardContent className="flex flex-col items-center justify-center px-4 py-12 text-center sm:px-6 sm:py-16">
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100">
             <FileText className="h-7 w-7 text-slate-600" aria-hidden="true" />
           </div>
