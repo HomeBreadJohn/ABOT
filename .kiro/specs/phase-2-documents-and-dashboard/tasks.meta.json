@@ -106,6 +106,16 @@
         "executionId": "5c9884d7-276d-4b10-8659-bd56af4dd426",
         "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
         "timestamp": 1794505119502
+      },
+      {
+        "executionId": "ed9f3353-b1b4-41c1-b391-65b08095d07b",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794507626726
+      },
+      {
+        "executionId": "ed9f3353-b1b4-41c1-b391-65b08095d07b",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794508336483
       }
     ],
     "2.3 Implement the upload queue state machine": [
@@ -113,6 +123,16 @@
         "executionId": "5c9884d7-276d-4b10-8659-bd56af4dd426",
         "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
         "timestamp": 1794505119582
+      },
+      {
+        "executionId": "ed9f3353-b1b4-41c1-b391-65b08095d07b",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794507627585
+      },
+      {
+        "executionId": "ed9f3353-b1b4-41c1-b391-65b08095d07b",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794508336952
       }
     ],
     "3.1 Add documents environment resolution and the server-only service factory": [
@@ -170,6 +190,16 @@
         "executionId": "5c9884d7-276d-4b10-8659-bd56af4dd426",
         "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
         "timestamp": 1794505120214
+      },
+      {
+        "executionId": "ed9f3353-b1b4-41c1-b391-65b08095d07b",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794507627926
+      },
+      {
+        "executionId": "ed9f3353-b1b4-41c1-b391-65b08095d07b",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794508337291
       }
     ],
     "4.2 Implement Manila date and deadline helpers": [
@@ -177,6 +207,16 @@
         "executionId": "5c9884d7-276d-4b10-8659-bd56af4dd426",
         "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
         "timestamp": 1794505120312
+      },
+      {
+        "executionId": "ed9f3353-b1b4-41c1-b391-65b08095d07b",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794507629016
+      },
+      {
+        "executionId": "ed9f3353-b1b4-41c1-b391-65b08095d07b",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794508337482
       }
     ],
     "4.3 Implement attention classification and vault filtering/query models": [
@@ -184,6 +224,16 @@
         "executionId": "5c9884d7-276d-4b10-8659-bd56af4dd426",
         "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
         "timestamp": 1794505120426
+      },
+      {
+        "executionId": "ed9f3353-b1b4-41c1-b391-65b08095d07b",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794507629319
+      },
+      {
+        "executionId": "ed9f3353-b1b4-41c1-b391-65b08095d07b",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794508458433
       }
     ],
     "5.1 Implement direct upload transport and drop-zone helpers": [
@@ -289,6 +339,20 @@
         "executionId": "ed9f3353-b1b4-41c1-b391-65b08095d07b",
         "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
         "timestamp": 1794507596095
+      }
+    ],
+    "2. Implement shared upload policy, validation, and queue state": [
+      {
+        "executionId": "ed9f3353-b1b4-41c1-b391-65b08095d07b",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794508337066
+      }
+    ],
+    "4. Build document status, date, attention, and vault view models": [
+      {
+        "executionId": "ed9f3353-b1b4-41c1-b391-65b08095d07b",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794508458696
       }
     ]
   }

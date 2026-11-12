@@ -37,18 +37,18 @@ This plan is limited to Person 1 platform/UI work. It does not change `product.m
     - Add shell markup tests for one main, skip link, primary/recent navigation labels, accessible drawer behavior, and visible mock banner behavior.
     - _Design: Components and Interfaces > Component inventory; Sidebar state cookie; Error Handling; Security Considerations; product.md: §9.3, §16, §19.17._
 
-- [ ] 2. Implement shared upload policy, validation, and queue state
+- [x] 2. Implement shared upload policy, validation, and queue state
   - [x] 2.1 Create the shared upload policy and action input schemas
     - Replace `src/features/documents/schemas/upload.ts` with policy-driven prepare, finalize, and discard schemas.
     - Add lifecycle and initial-schema policies for PDF, JPEG, PNG, TIFF, and WebP, with the initial profile excluding TIFF and WebP, a 10 MiB limit, a ten-file batch limit, accept attributes, and user-facing format labels.
     - Keep policy and schema modules free of `server-only` and React imports so the browser and server can share them.
     - _Design: Data Models > Upload policy and upload schemas; Data source/schema profile selection; product.md: §5.1, §5.2, §9.1._
-  - [ ] 2.2 Implement pure filename, MIME, magic-byte, and storage-path helpers
+  - [x] 2.2 Implement pure filename, MIME, magic-byte, and storage-path helpers
     - Add `resolveMimeType`, `validateFileForUpload`, `sniffMimeType`, `sanitizeStorageFilename`, and `buildStoragePath` under `src/features/documents/upload`.
     - Preserve safe original filenames for metadata, derive storage extensions from validated MIME types, reject content/type mismatches, and avoid date or content inference.
     - Ensure helpers are deterministic and usable by both the composer and server service without importing server-only modules.
     - _Design: Key Functions with Formal Specifications; Security Considerations > Validation in depth and Filenames; product.md: §5.1, §9.1, §16._
-  - [ ] 2.3 Implement the upload queue state machine
+  - [x] 2.3 Implement the upload queue state machine
     - Add the reducer and upload item types for rejected, queued, preparing, uploading, finalizing, done, and failed phases.
     - Enforce valid transitions, monotonic byte progress, duplicate fingerprints, the ten non-rejected item cap, retryability, and removal behavior described by the state diagram.
     - Keep processing status separate from byte-upload progress and never model an invented OCR/analysis percentage.
@@ -107,18 +107,18 @@ server-only action module.
     - Assert action results never include raw Supabase/Postgres text and remain serializable to the client.
     - _Design: Error Handling; Testing Strategy > Service and action tests; product.md: §10.2, §14, §16._
 
-- [ ] 4. Build document status, date, attention, and vault view models
-  - [ ] 4.1 Implement total document and analysis presentation models
+- [x] 4. Build document status, date, attention, and vault view models
+  - [x] 4.1 Implement total document and analysis presentation models
     - Add total status, analysis status, category, card, and presentation helpers under `src/features/documents/view-models`.
     - Map every contract `DocumentStatus` to visible label, description, icon, tone, shape, group, processing flag, and attention reason; map every analysis status/document-status pair without inventing processing progress.
     - Format category, file type, file size, page count, uploaded date, failure reason, and document links for the vault/detail UI.
     - _Design: Data Models > Document status view, Analysis status view, Categories, Document card view; Visual Design System > Iconography/status shapes; product.md: §3.4, §9.2, §9.4, §13._
-  - [ ] 4.2 Implement Manila date and deadline helpers
+  - [x] 4.2 Implement Manila date and deadline helpers
     - Add date-only parsing/formatting and Asia/Manila helpers that never parse `yyyy-mm-dd` with `new Date(string)`.
     - Add deadline item construction, conflict grouping, fallback summaries, provisional cues, reminder merging, bucket assignment, total ordering, and dashboard-window filtering.
     - Preserve every source date verbatim, keep null dates as unclear/to-confirm, and never silently choose among conflicting dates.
     - _Design: Deadline and Reminder Logic; Key Functions > buildDeadlineItems and date helpers; product.md: §3.4, §9.3, §9.4, §16._
-  - [ ] 4.3 Implement attention classification and vault filtering/query models
+  - [x] 4.3 Implement attention classification and vault filtering/query models
     - Add attention reason classification and ordering, including status, past/soon dates, unreadable pages, and uncertain/conflicting dates.
     - Add vault query parsing/serialization, category/status filters, accent-folded term search, all five sorts, and deterministic ID tie-breakers.
     - Keep the vault status groups distinct from dashboard date-based attention, as specified.
