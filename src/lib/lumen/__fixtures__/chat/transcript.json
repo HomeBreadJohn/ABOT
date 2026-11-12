@@ -1,0 +1,20 @@
+{
+  "_note": "SYNTHETIC fixture authored by hand for tests. Not captured from Lumen. No real PII. Matches GET .../messages (200) in docs/lumen/ai-chat-openapi.yaml.",
+  "Messages": [
+    {
+      "id": "msg-synthetic-0001",
+      "sessionID": "sess-synthetic-0001",
+      "role": "user",
+      "content": "Classify this document.",
+      "createdTS": 1794510001
+    },
+    {
+      "id": "msg-synthetic-0002",
+      "sessionID": "sess-synthetic-0001",
+      "role": "assistant",
+      "content": "{\"category\":\"UTILITIES\",\"confidence\":0.92}",
+      "createdTS": 1794510002
+    }
+  ],
+  "Count": 2
+}

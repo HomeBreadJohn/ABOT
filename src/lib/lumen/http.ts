@@ -30,6 +30,11 @@ export type LumenRequestOptions<T> = {
   operation: LumenOperation;
   timeoutMs?: number;
   transport?: LumenTransport;
+  /**
+   * OCR responses wrap their payload in `{ data, requestId }`; AI Chat
+   * responses are top-level. Defaults to true to keep OCR behavior unchanged.
+   */
+  unwrapEnvelope?: boolean;
 };
 
 function baseUrl(base: "ocr" | "ai_chat"): string {
@@ -49,8 +54,9 @@ function authHeaders(): Record<string, string> {
 }
 
 /**
- * Makes one authenticated Lumen request. Sends both auth headers, unwraps the
- * `{ data, requestId }` envelope for JSON responses, validates the payload with
+ * Makes one authenticated Lumen request. Sends both auth headers, optionally
+ * unwraps the `{ data, requestId }` envelope (OCR; `unwrapEnvelope` defaults to
+ * true) or validates the raw body (AI Chat; `unwrapEnvelope: false`) with
  * `schema`, maps failures to `LumenError`, and writes exactly one structured
  * log line. The raw body is never logged or placed in an error.
  */
@@ -67,6 +73,7 @@ export async function lumenRequest<T>(opts: LumenRequestOptions<T>): Promise<T> 
     operation,
     timeoutMs = DEFAULT_TIMEOUT_MS,
     transport = globalThis.fetch,
+    unwrapEnvelope = true,
   } = opts;
 
   const url = `${baseUrl(base)}${path}`;
@@ -106,8 +113,11 @@ export async function lumenRequest<T>(opts: LumenRequestOptions<T>): Promise<T> 
       throw error;
     }
 
-    const envelope = (await response.json()) as { data?: unknown };
-    const parsed = schema.safeParse(envelope.data);
+    const rawBody = await response.json();
+    const responseData = unwrapEnvelope
+      ? (rawBody as { data?: unknown }).data
+      : rawBody;
+    const parsed = schema.safeParse(responseData);
     if (!parsed.success) {
       errorCode = "INVALID_RESPONSE";
       throw new LumenError("INVALID_RESPONSE", status);

@@ -1,0 +1,9 @@
+{
+  "_note": "SYNTHETIC fixture authored by hand for tests. Not captured from Lumen. No real PII. Matches POST .../messages (200) in docs/lumen/ai-chat-openapi.yaml. The answer is strict JSON so requestJson can parse it directly.",
+  "Answer": {
+    "sessionID": "sess-synthetic-0001",
+    "answer": "{\"category\":\"UTILITIES\",\"subtype\":\"electricity bill\",\"issuer\":\"Synthetic Power Co.\",\"confidence\":0.92}",
+    "citations": [],
+    "degradedSources": []
+  }
+}
