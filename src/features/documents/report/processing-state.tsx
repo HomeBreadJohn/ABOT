@@ -56,14 +56,14 @@ export function ProcessingState({
 
   return (
     <Card>
-      <CardContent className="grid gap-3 pt-4 sm:pt-5">
+      <CardContent className="grid gap-4 pt-5 sm:pt-6">
         <StatusPill
           tone={status.tone}
           label={status.label}
           className="justify-self-start"
         />
         <progress
-          className="accent-accent h-2 w-full overflow-hidden rounded-full"
+          className="accent-accent bg-surface-sunken h-1.5 w-full overflow-hidden rounded-full"
           aria-label={`${STAGE_LABELS[stage]} your document`}
         />
         <p className="text-body-sm text-ink-muted" aria-live="polite">

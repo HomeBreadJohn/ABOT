@@ -75,12 +75,12 @@ export function applySafetyRules(draft: AnalysisResult): {
     const kept: Finding[] = [];
 
     for (const finding of findings) {
-      // Rule 6: a finding claiming Kalinga completed an action is removed.
+      // Rule 6: a finding claiming ABOT completed an action is removed.
       if (hasAny(`${finding.title} ${finding.explanation}`, COMPLETED_ACTION_PHRASES)) {
         adjustments.push({
           rule: "claims-completed-action",
           target: finding.id,
-          note: "Removed a finding that claimed Kalinga took an action on the user's behalf.",
+          note: "Removed a finding that claimed ABOT took an action on the user's behalf.",
         });
         continue;
       }

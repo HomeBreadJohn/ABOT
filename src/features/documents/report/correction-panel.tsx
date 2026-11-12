@@ -49,21 +49,23 @@ export function CorrectionPanel({
     <Card
       role="region"
       aria-label={`Correct ${field}`}
-      className="border-tone-caution-border bg-tone-caution-bg/40 mt-3"
+      className="border-tone-caution-border bg-tone-caution-bg/40 mt-3 border-l-4"
     >
-      <CardContent className="grid gap-3 pt-4 sm:pt-5">
+      <CardContent className="grid gap-3.5 pt-4 sm:pt-5">
         {evidence ? (
           <div className="text-body-sm text-ink-muted">
-            <p className="font-medium">What we read</p>
-            <blockquote className="border-strong text-ink mt-1 border-l-2 pl-3 italic">
+            <p className="text-ink-subtle text-caption font-semibold tracking-wide uppercase">
+              What we read
+            </p>
+            <blockquote className="border-strong text-ink mt-1.5 border-l-2 pl-3 leading-relaxed italic">
               {evidence.excerpt}
             </blockquote>
-            <p className="text-caption text-ink-subtle mt-1">
+            <p className="text-caption text-ink-subtle mt-1.5 tabular-nums">
               Page {evidence.pageNumber}
             </p>
           </div>
         ) : null}
-        <p className="text-body-sm text-ink-muted">{reason}</p>
+        <p className="text-body-sm text-ink-muted max-w-prose">{reason}</p>
         <div className="grid gap-1.5">
           <Label htmlFor={inputId} required>
             {field}

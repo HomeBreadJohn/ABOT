@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { FormMessage } from "@/components/ui/form-message";
 import { PresentationValue } from "@/components/ui/presentation-value";
 import { StatusPill } from "@/components/ui/status-pill";
+import { StatusShape } from "@/components/ui/status-shape";
 import type {
   AnalysisResult,
   EvidenceReference,
@@ -17,6 +18,7 @@ import { bucketConfidence } from "@/features/documents/report/bucket-confidence"
 import { CorrectionPanel } from "@/features/documents/report/correction-panel";
 import { FindingItem } from "@/features/documents/report/finding-item";
 import { presentCategory, presentDocumentStatus } from "@/features/documents/view-models";
+import { cn } from "@/lib/utils";
 
 function Section({
   title,
@@ -26,8 +28,10 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="grid gap-3">
-      <h2 className="text-subhead text-ink tracking-tight">{title}</h2>
+    <section className="grid gap-4">
+      <h2 className="text-subhead text-ink border-hairline border-b pb-2 tracking-tight">
+        {title}
+      </h2>
       {children}
     </section>
   );
@@ -125,13 +129,19 @@ export function AnalysisReport({
 
   return (
     <article className="grid gap-8">
-      <header className="border-hairline bg-surface grid gap-3 rounded-lg border p-4 sm:p-5">
-        <div className="flex flex-wrap items-center gap-2">
-          <h1 className="text-heading text-ink tracking-tight">{title}</h1>
-          <StatusPill tone={status.tone} label={status.label} />
+      <header className="border-hairline bg-surface shadow-soft grid gap-3 rounded-lg border p-5 sm:p-6">
+        <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
+          <h1 className="text-title text-ink tracking-tight text-balance">
+            {title}
+          </h1>
+          <StatusPill
+            tone={status.tone}
+            label={status.label}
+            className="mt-0.5 shrink-0"
+          />
         </div>
         {document.issuer ? (
-          <p className="text-body-sm text-ink-muted">From {document.issuer}</p>
+          <p className="text-body text-ink-muted">From {document.issuer}</p>
         ) : null}
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="neutral">{category.label}</Badge>
@@ -146,29 +156,41 @@ export function AnalysisReport({
         <Card
           role="region"
           aria-label="Please check this report"
-          className="border-tone-caution-border bg-tone-caution-bg/40"
+          className="border-tone-caution-border bg-tone-caution-bg/40 border-l-4"
         >
-          <CardContent className="grid gap-2 pt-4 sm:pt-5">
-            <p className="text-body text-ink font-semibold">
-              Some details still need your check
-            </p>
-            <p className="text-body-sm text-ink-muted">
-              Parts of this report are based on text that was hard to read.
-              Confirm the flagged details before you rely on them.
-            </p>
-            {isPartial ? (
-              <p className="text-body-sm text-ink-muted">
-                These pages could not be read:{" "}
-                {analysis.analysisMetadata.unavailablePages.join(", ")}.
+          <CardContent className="flex gap-3 pt-4 sm:pt-5">
+            <StatusShape
+              tone="caution"
+              size="md"
+              className="text-tone-caution-fg mt-0.5 shrink-0"
+              label="Caution"
+            />
+            <div className="grid gap-2">
+              <p className="text-body text-ink font-semibold">
+                Some details still need your check
               </p>
-            ) : null}
+              <p className="text-body-sm text-ink-muted max-w-prose">
+                Parts of this report are based on text that was hard to read.
+                Confirm the flagged details before you rely on them.
+              </p>
+              {isPartial ? (
+                <p className="text-body-sm text-ink-muted max-w-prose">
+                  These pages could not be read:{" "}
+                  {analysis.analysisMetadata.unavailablePages.join(", ")}.
+                </p>
+              ) : null}
+            </div>
           </CardContent>
         </Card>
       ) : null}
 
       <Section title="Overview">
-        <p className="text-body text-ink">{analysis.overview}</p>
-        <p className="text-body-sm text-ink-muted">{analysis.explanation}</p>
+        <p className="text-body text-ink max-w-prose leading-relaxed">
+          {analysis.overview}
+        </p>
+        <p className="text-body-sm text-ink-muted max-w-prose leading-relaxed">
+          {analysis.explanation}
+        </p>
       </Section>
 
       {keyInformation.length > 0 ? (
@@ -230,8 +252,16 @@ export function AnalysisReport({
               const isResolvedItem =
                 resolved && item.id === requiredReview?.id;
               return (
-                <Card key={item.id} className="border-tone-caution-border">
-                  <CardContent className="grid gap-2 pt-4 sm:pt-5">
+                <Card
+                  key={item.id}
+                  className={cn(
+                    "border-l-4",
+                    isResolvedItem
+                      ? "border-tone-positive-border"
+                      : "border-tone-caution-border",
+                  )}
+                >
+                  <CardContent className="grid gap-2.5 pt-4 sm:pt-5">
                     <div className="flex flex-wrap items-center gap-2">
                       <h3 className="text-body text-ink font-semibold">
                         {item.field}
@@ -241,7 +271,9 @@ export function AnalysisReport({
                         value={isResolvedItem ? "FOUND" : "REVIEW_REQUIRED"}
                       />
                     </div>
-                    <p className="text-body-sm text-ink-muted">{item.reason}</p>
+                    <p className="text-body-sm text-ink-muted max-w-prose">
+                      {item.reason}
+                    </p>
                     {isResolvedItem ? (
                       <FormMessage variant="success">
                         Correction saved.
@@ -261,7 +293,7 @@ export function AnalysisReport({
                       ) : (
                         <button
                           type="button"
-                          className="text-body-sm text-accent justify-self-start font-medium underline underline-offset-2"
+                          className="text-body-sm text-accent-ink hover:text-accent ease-standard justify-self-start rounded-sm font-medium underline underline-offset-2 transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-focus"
                           onClick={() => setPanelOpen(true)}
                         >
                           Correct this value
@@ -278,7 +310,7 @@ export function AnalysisReport({
 
       {analysis.limitations.length > 0 ? (
         <Section title="What this report doesn't cover">
-          <ul className="text-body-sm text-ink-muted grid list-disc gap-1 pl-5">
+          <ul className="text-body-sm text-ink-muted grid max-w-prose list-disc gap-1.5 pl-5 leading-relaxed marker:text-ink-subtle">
             {analysis.limitations.map((limitation) => (
               <li key={limitation}>{limitation}</li>
             ))}
@@ -286,7 +318,7 @@ export function AnalysisReport({
         </Section>
       ) : null}
 
-      <footer className="text-caption text-ink-subtle border-hairline border-t pt-4">
+      <footer className="text-caption text-ink-subtle border-hairline mt-2 border-t pt-4 tabular-nums">
         Generated {formatGenerated(analysis.analysisMetadata.generatedAt)} ·{" "}
         {analysis.analysisMetadata.language} · report v
         {analysis.analysisMetadata.analysisVersion}

@@ -10,12 +10,14 @@ export function PageHeader({
   return (
     <div className="mb-6 max-w-2xl min-w-0 sm:mb-8">
       {eyebrow ? (
-        <p className="mb-2 text-sm font-medium text-slate-500">{eyebrow}</p>
+        <p className="text-caption text-accent-ink mb-2 font-semibold tracking-wide uppercase">
+          {eyebrow}
+        </p>
       ) : null}
-      <h1 className="text-3xl font-semibold tracking-tight text-slate-950">
+      <h1 className="text-title text-ink tracking-tight text-balance">
         {title}
       </h1>
-      <p className="mt-2 text-slate-600">{description}</p>
+      <p className="text-body text-ink-muted mt-2 text-pretty">{description}</p>
     </div>
   );
 }

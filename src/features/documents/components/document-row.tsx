@@ -29,7 +29,7 @@ function DocumentRow({ view }: { view: DocumentCardView }) {
   const headingId = `document-row-${view.id}-title`;
 
   return (
-    <li className="bg-surface border-hairline ease-standard hover:bg-surface-hover relative rounded-xl border transition-colors duration-150">
+    <li className="group bg-surface border-hairline shadow-soft ease-standard hover:border-strong hover:bg-surface-hover relative rounded-xl border transition-[background-color,border-color,box-shadow] duration-150 hover:shadow-raised">
       <Link
         href={view.href}
         aria-labelledby={headingId}
@@ -42,7 +42,7 @@ function DocumentRow({ view }: { view: DocumentCardView }) {
         <div className="min-w-0">
           <h2
             id={headingId}
-            className="text-body text-ink truncate font-semibold sm:text-lg"
+            className="text-body text-ink group-hover:text-accent-ink ease-standard truncate font-semibold transition-colors duration-150 sm:text-lg"
           >
             {view.title}
           </h2>
@@ -55,7 +55,9 @@ function DocumentRow({ view }: { view: DocumentCardView }) {
         </div>
 
         <div className="hidden min-w-0 md:block">
-          <p className="text-caption text-ink-subtle mb-1">Processing</p>
+          <p className="text-caption text-ink-subtle mb-1.5 font-medium tracking-wide uppercase">
+            Processing
+          </p>
           <StatusPill
             tone={view.status.tone}
             label={view.status.label}
@@ -64,7 +66,9 @@ function DocumentRow({ view }: { view: DocumentCardView }) {
         </div>
 
         <div className="min-w-0">
-          <p className="text-caption text-ink-subtle mb-1">Analysis</p>
+          <p className="text-caption text-ink-subtle mb-1.5 font-medium tracking-wide uppercase">
+            Analysis
+          </p>
           <StatusPill
             tone={view.analysis.tone}
             label={view.analysis.label}
@@ -73,7 +77,7 @@ function DocumentRow({ view }: { view: DocumentCardView }) {
         </div>
 
         <div className="text-body-sm text-ink-muted min-w-0">
-          <p className="text-caption text-ink-subtle mb-1 md:hidden">
+          <p className="text-caption text-ink-subtle mb-1.5 font-medium tracking-wide uppercase md:hidden">
             Processing
           </p>
           <div className="md:hidden">

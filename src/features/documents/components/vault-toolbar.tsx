@@ -80,7 +80,7 @@ function VaultToolbar({ query }: { query: VaultQuery }) {
   return (
     <div
       aria-label="Document filters"
-      className="bg-surface border-hairline grid gap-3 rounded-xl border p-3 sm:grid-cols-2 sm:p-4 lg:grid-cols-[minmax(16rem,1fr)_repeat(3,minmax(9rem,12rem))]"
+      className="bg-surface border-hairline shadow-soft grid gap-3 rounded-xl border p-3 sm:grid-cols-2 sm:p-4 lg:grid-cols-[minmax(16rem,1fr)_repeat(3,minmax(9rem,12rem))]"
       role="search"
     >
       <div className="sm:col-span-2 lg:col-span-1">

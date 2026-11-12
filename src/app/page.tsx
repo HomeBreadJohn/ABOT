@@ -40,8 +40,9 @@ export default function HomePage() {
             {brand.tagline}
           </h1>
           <p className="mt-6 max-w-xl text-lg leading-8 text-slate-500">
-            {brand.shortDescription} Upload, organize, and prepare to get useful
-            guidance when the product workflows are ready.
+            {brand.shortDescription} Upload a document and ABOT reads it,
+            explains it in plain language, and shows you the evidence behind
+            every finding.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Button asChild size="lg">

@@ -31,14 +31,19 @@ function EmptyState({
     >
       <span
         aria-hidden="true"
-        className="border-strong text-ink-muted mb-4 inline-flex h-10 w-10 items-center justify-center rounded-full border text-lg font-semibold"
+        className="border-hairline bg-surface text-ink-subtle shadow-soft mb-4 inline-flex h-11 w-11 items-center justify-center rounded-full border text-lg font-semibold"
       >
         ···
       </span>
-      <h2 id={headingId} className="text-heading text-ink tracking-tight">
+      <h2
+        id={headingId}
+        className="text-heading text-ink tracking-tight text-balance"
+      >
         {title}
       </h2>
-      <p className="text-body-sm text-ink-muted mt-2 max-w-md">{description}</p>
+      <p className="text-body-sm text-ink-muted mt-2 max-w-md text-pretty">
+        {description}
+      </p>
       {action ? <div className="mt-5">{action}</div> : null}
     </section>
   );

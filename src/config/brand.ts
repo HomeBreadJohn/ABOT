@@ -1,7 +1,9 @@
+// ABOT — a play on "abot" (Filipino: to reach, within reach) and "a bot".
+// Understanding important documents, brought within reach.
 export const brand = {
-  name: "Document AI",
+  name: "ABOT",
   shortDescription:
-    "A clear, secure workspace for understanding important documents.",
-  tagline: "Understand documents. Take the next step.",
-  temporaryNotice: "The product name and identity are still being finalized.",
+    "A clear, secure workspace that brings understanding of important documents within reach.",
+  tagline: "Abot-kamay na pag-unawa — understanding, within reach.",
+  temporaryNotice: "Preview",
 } as const;
