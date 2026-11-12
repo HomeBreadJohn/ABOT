@@ -45,13 +45,12 @@ const sourceExtensions = [".ts", ".tsx", ".js", ".jsx"];
 const secretNames = [
   "SUPABASE_SERVICE_ROLE_KEY",
   "LUMEN_API_KEY",
-  "LUMEN_API_BASE_URL",
-  "LUMEN_MODEL",
+  "LUMEN_API_SECRET",
 ];
 const forbiddenClientImports = [
   "@/lib/env/server",
   "@/lib/supabase/admin",
-  "@/lib/ai",
+  "@/lib/lumen/http",
   "server-only",
 ];
 
@@ -165,13 +164,11 @@ describe("server-only secret boundary", () => {
     const profileServiceSource = readSource(
       join(sourceRoot, "features/profile/services/profile-service.ts"),
     );
-    const lumenProviderSource = readSource(
-      join(sourceRoot, "lib/ai/providers/lumen-provider.ts"),
-    );
+    const lumenHttpSource = readSource(join(sourceRoot, "lib/lumen/http.ts"));
 
     expect(serverEnvSource).toContain('import "server-only"');
     expect(adminClientSource).toContain('import "server-only"');
-    expect(lumenProviderSource).toContain('import "server-only"');
+    expect(lumenHttpSource).toContain('import "server-only"');
     expect(profileServiceSource).toContain('import "server-only"');
     expect(profileServiceSource).not.toContain("createAdminClient");
     expect(profileServiceSource).not.toContain("getServerEnv");
@@ -193,9 +190,10 @@ describe("server-only secret boundary", () => {
         `${sourceLabel(filePath)} must not contain server secret names`,
       ).not.toMatch(escapedSecretPattern());
 
+      const importedModules = extractImports(source);
       for (const forbiddenImport of forbiddenClientImports) {
         expect(
-          source,
+          importedModules,
           `${sourceLabel(filePath)} must not import ${forbiddenImport}`,
         ).not.toContain(forbiddenImport);
       }
@@ -203,7 +201,7 @@ describe("server-only secret boundary", () => {
       expect(
         source,
         `${sourceLabel(filePath)} must not contain Lumen endpoint configuration`,
-      ).not.toMatch(/(?:LUMEN|lumen-provider|\/api\/lumen)/i);
+      ).not.toMatch(/(?:\bLUMEN_[A-Z_]+\b|lumen-provider|\/api\/lumen|lumen\/http)/i);
     }
   });
 

@@ -1,0 +1,381 @@
+openapi: "3.0.3"
+info:
+  title: "Lumen Developer AI Chat API"
+  description: |
+    Talk to your organization's configured AI Chat instances from your own backend on the Lumen platform.
+
+    > **Preview.** Published on the test and staging gateways only. The `/ai_chat` path does not exist on live yet.
+
+    ## Overview
+
+    The AI Chat API lets you:
+    - **List instances** — the assistants your organization has configured and your key may open sessions against
+    - **Open sessions** — a persistent conversation bound to one instance and to the API key that created it
+    - **Send messages** — one user message in, the assistant's answer out; both persist in the session transcript
+    - **Read transcripts** — the persisted messages of a session in chronological order, oldest first; the first `limit` messages, with no cursor to read past the 200th
+
+    Instances are configured by organization admins in the **Lumen Organization Portal**. This API reads them; it cannot create or change them.
+
+    ## Authentication
+
+    Every endpoint requires **two headers**:
+    ```
+    lumen-api-key: <your-api-key>
+    lumen-api-secret: <your-api-secret>
+    ```
+
+    Obtain both from the **Lumen Organization Portal** under **Settings → API Keys**. The key must carry the **AI Chat** grant: a key without it gets `403 ACCESS_DENIED`, and a read-only grant gets `403 VIEW_ONLY_ACCESS` on the two `POST` routes.
+
+    ## Credits
+
+    Each call has a price in API credits, charged after a 2xx:
+
+    | Call | Credits |
+    |------|---------|
+    | `GET /instances` | 1 |
+    | `POST /instances/{id}/sessions` | 2 |
+    | `POST /instances/{id}/sessions/{sessionID}/messages` | 5 |
+    | `GET /instances/{id}/sessions/{sessionID}/messages` | 1 |
+
+    A balance below the price is refused before the handler runs with `403 API_CREDITS_INSUFFICIENT`. Sending a message also needs a positive Lumen Credits balance; at or below zero it answers `403 LC_INSUFFICIENT`. A turn the model does not answer within 25 s ends `504 AI_CHAT_REPLY_TIMEOUT` and is not charged.
+
+    ## Conversation flow
+
+    1. `GET /instances` — pick an `InstanceID` whose `Status` allows sessions.
+    2. `POST /instances/{id}/sessions` — optional `{ "title": "..." }`; keep `Session.id` from the 201.
+    3. `POST /instances/{id}/sessions/{sessionID}/messages` with `{ "message": "..." }` (1 to 4000 characters) — the 200 carries `Answer`.
+    4. `GET /instances/{id}/sessions/{sessionID}/messages?limit=50` — the transcript in chronological order, oldest first. The response is the first `limit` messages (1–200, default 50); there is no cursor on this surface (`before` is not accepted), so a session longer than 200 messages cannot be read past its 200th message through this API.
+
+    A session belongs to the key that created it. Reading or writing it with another key answers `403 SESSION_NOT_OWNED`; using it under a different instance answers `404 SESSION_NOT_FOR_INSTANCE`.
+
+    ## Errors
+
+    Every error body is `{ "error": { "code": "...", "message": "..." } }` with the HTTP status on the response. Codes you will meet: `VALIDATION_ERROR`, `AI_CHAT_QUERY_TOO_LONG`, `AI_CHAT_QUERY_REQUIRED`, `AI_CHAT_BAD_REQUEST`, `AI_CHAT_SESSION_ID_INVALID` (400); `API_KEY_NOT_FOUND`, `API_SECRET_NOT_FOUND`, `INVALID_API_CREDENTIALS` (401); `ACCESS_DENIED`, `VIEW_ONLY_ACCESS`, `ORG_SUBSCRIPTION_INACTIVE`, `API_CREDITS_INSUFFICIENT`, `LC_INSUFFICIENT`, `SESSION_NOT_OWNED` (403); `AI_CHAT_SESSION_NOT_FOUND`, `SESSION_NOT_FOR_INSTANCE` (404); `AI_CHAT_CONFLICT` (409, the session is archived); `RATE_LIMIT_EXCEEDED`, `BURST_RATE_LIMIT_EXCEEDED`, `AI_CHAT_MODEL_RATE_LIMITED` (429); `AI_CHAT_MODEL_UPSTREAM_ERROR` (502); `AI_CHAT_NOT_CONFIGURED`, `AI_CHAT_DEPENDENCY_UNAVAILABLE`, `AI_CHAT_MODEL_UNAVAILABLE`, `PERMISSIONS_UPDATING`, `FEATURE_DISABLED` (503); `AI_CHAT_REPLY_TIMEOUT` (504). None of them charge credits.
+  version: "1.0.0"
+  contact:
+    name: "Bayanichain"
+    url: "https://bayanichain.com"
+  license:
+    name: "MIT"
+
+servers:
+  - url: "https://api.staging.nonlive.lumen.bayanichain.tech/ai_chat"
+    description: "Injected at runtime via VITE_APIM_ORIGIN"
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: "apiKey"
+      in: "header"
+      name: "lumen-api-key"
+      description: "Your Developer API Key from the Lumen Organization Portal (Settings → API Keys)"
+    ApiSecretAuth:
+      type: "apiKey"
+      in: "header"
+      name: "lumen-api-secret"
+      description: "Your Developer API Secret from the Lumen Organization Portal (Settings → API Keys)"
+
+# ═══════════════════════════════════════════════════════════════════
+# PATHS
+# ═══════════════════════════════════════════════════════════════════
+
+paths:
+
+  # ─── AI CHAT ──────────────────────────────────────
+  /instances:
+    get:
+      operationId: listAiChatInstances
+      x-lumen-new: true
+      x-lumen-preview: true
+      tags:
+        - AI Chat
+      summary: List callable AI Chat instances
+      description: Returns the organization's configured AI Chat instances — the assistants a developer can open sessions against. Exposes identity and prose only, never admin audit fields.
+      responses:
+        "200":
+          description: Callable instances
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  Instances:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        InstanceID:
+                          type: string
+                        Name:
+                          type: string
+                        Description:
+                          type: string
+                        Status:
+                          type: string
+                  Count:
+                    type: integer
+        "401":
+          description: Missing or invalid API credentials
+        "403":
+          description: Key not scoped to AI Chat, org refused, or subscription inactive
+        "429":
+          description: Rate limit exceeded
+        "503":
+          description: Route disabled, permissions updating, or dependency unhealthy
+      security:
+        - ApiKeyAuth: []
+          ApiSecretAuth: []
+
+  /instances/{id}/sessions:
+    post:
+      operationId: createAiChatSession
+      x-lumen-new: true
+      x-lumen-preview: true
+      tags:
+        - AI Chat
+      summary: Open a conversation session
+      description: Creates a persistent session against the given AI Chat instance. Messages sent to the session are answered by the instance's configured assistant (its persona and out-of-scope reply).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: AI Chat instance ID
+          schema:
+            type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  minLength: 1
+                  maxLength: 200
+                  description: Optional session title. Defaults to a timestamped name.
+                  example: Order support conversation
+      responses:
+        "201":
+          description: Session created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  Session:
+                    type: object
+                    description: The session record. Keep `Session.id`; it is the `{sessionID}` of the next two calls.
+                    required:
+                      - id
+                      - organizationID
+                    properties:
+                      id:
+                        type: string
+                        description: Session ID — the `{sessionID}` path parameter of the message and transcript calls.
+                      organizationID:
+                        type: string
+                      title:
+                        type: string
+                        description: The title given on create, or the timestamped default.
+                      isArchived:
+                        type: boolean
+                        description: Always false for a session this API just created.
+                      createdTS:
+                        type: integer
+                        description: Epoch seconds.
+                      updatedTS:
+                        type: integer
+                        description: Epoch seconds.
+                      metadata:
+                        type: object
+                        additionalProperties:
+                          type: string
+                        description: Opaque string map stamped by the server (the owning instance and the creating key). Never sent by the caller.
+        "400":
+          description: Validation failed (code VALIDATION_ERROR); the message names the first invalid field. No credits are charged.
+        "401":
+          description: Missing or invalid API credentials
+        "403":
+          description: Key not scoped to AI Chat, org refused, or subscription inactive
+        "404":
+          description: Instance not found
+        "429":
+          description: Rate limit exceeded
+        "503":
+          description: AI Chat not configured in this environment (code AI_CHAT_NOT_CONFIGURED), or the session store is unreachable (code AI_CHAT_DEPENDENCY_UNAVAILABLE; retryable, no credits are charged)
+      security:
+        - ApiKeyAuth: []
+          ApiSecretAuth: []
+
+  /instances/{id}/sessions/{sessionID}/messages:
+    post:
+      operationId: sendAiChatMessage
+      x-lumen-new: true
+      x-lumen-preview: true
+      tags:
+        - AI Chat
+      summary: Send a message (the turn)
+      description: Sends a user message to the session and returns the assistant's answer. Both the user message and the answer persist in the session transcript. This is the expensive call of the module — it invokes the instance's LLM-backed assistant.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: AI Chat instance ID
+          schema:
+            type: string
+        - name: sessionID
+          in: path
+          required: true
+          description: Session ID from the session create call
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - message
+              properties:
+                message:
+                  type: string
+                  minLength: 1
+                  maxLength: 4000
+                  example: What are your support hours?
+      responses:
+        "200":
+          description: Assistant answer
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  Answer:
+                    type: object
+                    required:
+                      - sessionID
+                      - answer
+                    properties:
+                      sessionID:
+                        type: string
+                      answer:
+                        type: string
+                        description: The assistant's reply, already persisted in the transcript together with the user message.
+                      citations:
+                        type: array
+                        items:
+                          type: string
+                        description: Source citations the assistant used, when any.
+                      degradedSources:
+                        type: array
+                        items:
+                          type: string
+                        description: Sources the assistant normally consults that were unavailable for this turn. Empty or absent when none.
+        "400":
+          description: The request was refused before the model ran, and no credits are charged. Code VALIDATION_ERROR when the body fails validation (the message names the first invalid field); AI_CHAT_QUERY_TOO_LONG or AI_CHAT_QUERY_REQUIRED when the assistant refuses the question's length; AI_CHAT_BAD_REQUEST or AI_CHAT_SESSION_ID_INVALID when the session id is malformed.
+        "401":
+          description: Missing or invalid API credentials
+        "403":
+          description: Key not scoped to AI Chat, org refused, subscription inactive, insufficient Lumen Credits, or session belongs to another actor (code SESSION_NOT_OWNED)
+        "404":
+          description: Instance not found, or no such session (code AI_CHAT_SESSION_NOT_FOUND; a session opened under another instance answers SESSION_NOT_FOR_INSTANCE). No credits are charged.
+        "409":
+          description: The session is archived and cannot take another message (code AI_CHAT_CONFLICT). No credits are charged.
+        "429":
+          description: Rate limit exceeded, or the model provider is rate-limiting (code AI_CHAT_MODEL_RATE_LIMITED; retry after a pause, no credits are charged)
+        "502":
+          description: The model provider failed (code AI_CHAT_MODEL_UPSTREAM_ERROR; no credits are charged)
+        "503":
+          description: AI Chat not configured in this environment (code AI_CHAT_NOT_CONFIGURED), or a model call ran past its own budget (code AI_CHAT_MODEL_UNAVAILABLE, LUMEN_AI_CHAT_CLASSIFIER_TIMEOUT_MS / LUMEN_AI_CHAT_LLM_TIMEOUT_MS; retryable, no credits are charged)
+        "504":
+          description: The model did not reply within the reply deadline (code AI_CHAT_REPLY_TIMEOUT, LUMEN_AI_CHAT_REPLY_TIMEOUT_MS, default 25 s). The question stays in the transcript with no answer, and no credits are charged.
+      security:
+        - ApiKeyAuth: []
+          ApiSecretAuth: []
+    get:
+      operationId: listAiChatMessages
+      x-lumen-new: true
+      x-lumen-preview: true
+      tags:
+        - AI Chat
+      summary: Get the session transcript
+      description: Returns the persisted messages of a session in chronological order, oldest first. The response is the first `limit` messages of the transcript. There is no cursor on this surface (`before` is not accepted), so a session longer than 200 messages cannot be read past its 200th message through this API.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: AI Chat instance ID
+          schema:
+            type: string
+        - name: sessionID
+          in: path
+          required: true
+          description: Session ID
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          description: Number of messages to return (1-200), counted from the start of the transcript. Invalid values fall back to 50 rather than failing.
+          schema:
+            type: integer
+            default: 50
+            minimum: 1
+            maximum: 200
+      responses:
+        "200":
+          description: Session transcript
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  Messages:
+                    type: array
+                    description: The first `limit` messages of the transcript, oldest first.
+                    items:
+                      type: object
+                      required:
+                        - id
+                        - sessionID
+                        - role
+                        - content
+                      properties:
+                        id:
+                          type: string
+                        sessionID:
+                          type: string
+                        role:
+                          type: string
+                          enum:
+                            - user
+                            - assistant
+                        content:
+                          type: string
+                        createdTS:
+                          type: integer
+                          description: Epoch seconds.
+                  Count:
+                    type: integer
+                    description: Number of messages in this response.
+        "400":
+          description: The session id is malformed (code AI_CHAT_BAD_REQUEST or AI_CHAT_SESSION_ID_INVALID). No credits are charged.
+        "401":
+          description: Missing or invalid API credentials
+        "403":
+          description: Key not scoped to AI Chat, org refused, subscription inactive, or session belongs to another actor (code SESSION_NOT_OWNED)
+        "404":
+          description: Instance not found, or no such session (code AI_CHAT_SESSION_NOT_FOUND; a session opened under another instance answers SESSION_NOT_FOR_INSTANCE). No credits are charged.
+        "429":
+          description: Rate limit exceeded
+        "503":
+          description: AI Chat not configured in this environment (code AI_CHAT_NOT_CONFIGURED), or the session store is unreachable (code AI_CHAT_DEPENDENCY_UNAVAILABLE; retryable, no credits are charged)
+      security:
+        - ApiKeyAuth: []
+          ApiSecretAuth: []
+
+tags:
+  - name: "AI Chat"
+    description: "List instances, open sessions, send messages and read transcripts"

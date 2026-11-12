@@ -1,0 +1,14 @@
+{
+  "_note": "SYNTHETIC fixture authored by hand for tests. Not captured from Lumen. No real PII. Matches POST /instances/{id}/sessions (201) in docs/lumen/ai-chat-openapi.yaml.",
+  "Session": {
+    "id": "sess-synthetic-0001",
+    "organizationID": "org-synthetic-0001",
+    "title": "Synthetic analysis session",
+    "isArchived": false,
+    "createdTS": 1794510000,
+    "updatedTS": 1794510000,
+    "metadata": {
+      "instance": "inst-synthetic-0001"
+    }
+  }
+}

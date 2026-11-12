@@ -15,6 +15,7 @@ Things only a human can do or decide. Keep this list current. Tick items off as 
 
 - [ ] Get Lumen API key and secret for OCR and AI Chat (headers `lumen-api-key`, `lumen-api-secret`). Put them in `.env.local`, never in git. Blocks Part B Phase 3 (OCR) and the AI Chat parts of Phase 4.
 - [ ] Confirm the OCR and AI Chat grants are enabled for that key.
+- [ ] **B12 live staging capture — PENDING user approval (deliberately deferred, Option A).** The AI Chat client, schemas, JSON-recovery service, and tests were built from the docs and hand-authored synthetic fixtures only; zero live credited calls were made. Still owed once credentials and the AI Chat grant are available: run `scripts/capture-lumen-chat.ts` (live, credited — lists instances, opens a session, sends one message) to capture real instance-listing, session-creation, and message responses; scrub any real data; and compare the captures against `src/lib/lumen/chat-schemas.ts` (stop and report if docs and captures disagree). The persona, JSON-reliability, and reply-timeout findings (see the "Needs provider answers" items below) are also still open and were not invented.
 - [x] Final env variable names decided: `PROVIDER_MODE`, `LUMEN_API_KEY`, `LUMEN_API_SECRET`, `LUMEN_OCR_BASE_URL`, `LUMEN_AI_CHAT_BASE_URL`, `LUMEN_AI_INSTANCE_ID`, `JOB_RUNNER_SECRET`. See `.env.example`.
 
 ## Needs provider answers (product.md section 20)

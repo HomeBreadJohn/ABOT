@@ -1,0 +1,1284 @@
+openapi: "3.0.3"
+info:
+  title: "Lumen Developer OCR API"
+  description: |
+    Upload documents, read the recognised text page by page, and record human review judgements on the Lumen platform.
+
+    > **Preview.** Published on the test and staging gateways only. The `/ocr` path does not exist on live yet.
+
+    ## Overview
+
+    The OCR API lets you:
+    - **Upload documents** — PDF, PNG, JPEG, TIFF or WebP, up to 10 MiB, read asynchronously
+    - **Follow a read** — poll the document record until it is `READY` or `PARTIAL`, re-queue a `FAILED` one
+    - **Read pages** — words, lines, geometry and confidence per page, plus the stored bytes
+    - **Review** — confirm, correct or reject a word or field with optimistic concurrency, and correct single words
+
+    Deleting a document is not available on the developer surface.
+
+    ## Authentication
+
+    Every endpoint requires **two headers**:
+    ```
+    lumen-api-key: <your-api-key>
+    lumen-api-secret: <your-api-secret>
+    ```
+
+    Obtain both from the **Lumen Organization Portal** under **Settings → API Keys**. The key must carry the **OCR** grant: a key without it gets `403 ACCESS_DENIED`, and a read-only grant gets `403 VIEW_ONLY_ACCESS` on the `POST` routes.
+
+    ## Response envelope
+
+    Every JSON success body is `{ "data": ..., "requestId": "..." }`. Read the resource from `data`; quote `requestId` when reporting a problem. The upload answers with the record under `data` plus a `Location` header; the file download answers raw bytes, not JSON.
+
+    ## Credits
+
+    Each call has a price in API credits:
+
+    | Call | Credits |
+    |------|---------|
+    | `POST /documents` (upload) | 6 |
+    | `POST /documents/{documentID}/retry` | 3 |
+    | `POST /documents/{documentID}/reviews` | 2 |
+    | `POST /documents/{documentID}/review/corrections` | 2 |
+    | Every `GET` | 1 |
+
+    Every `GET`, review and correction is charged after its 2xx. Upload and retry are charged when the read ends — once, when it ends `READY` or `PARTIAL`; a `FAILED` read, a read that threw, or bytes that never landed charge nothing, and a `201` descriptor upload is never charged. The balance is still pre-checked before the handler runs, so a balance below the price is refused with `403 API_CREDITS_INSUFFICIENT`. Upload and retry also need a positive Lumen Credits balance; at or below zero they answer `403 LC_INSUFFICIENT`.
+
+    ## Upload and read flow
+
+    1. `POST /documents` with the raw bytes, `Content-Type` set to the document's media type and `X-Lumen-Document-Name` set to a percent-encoded display name. The 202 carries a `Location` header and `data.DocumentID`.
+    2. `GET /documents/{documentID}` every few seconds until `data.Status` is `READY` or `PARTIAL`. `FAILED` can be re-queued with `POST /documents/{documentID}/retry`.
+    3. `GET /documents/{documentID}/pages?IncludeWords=true`, or one page at a time with `GET /documents/{documentID}/pages/{pageNumber}`.
+
+    Sending a JSON descriptor `{ "Name", "MediaType", "ByteSize" }` instead of bytes registers a `PENDING` record and answers 201; the bytes then travel out of band.
+
+    ## Review and corrections
+
+    Judgements are append-only and guarded by an entity tag. `GET /documents/{documentID}/reviews/revision?Kind=word&PageNumber=1&WordIndex=0` answers the current tag for a target; send it back as `If-Match` on `POST /documents/{documentID}/reviews`. The 201 carries a strong `ETag` for the new revision, which is the `If-Match` for the next judgement on the same target. A request without `If-Match` answers `428 ocr_review_precondition_required` before it reaches the module; a stale tag answers `409 OCR_REVIEW_CONFLICT`; a malformed tag (not 32 lower-case hex, not `*`) answers `400 invalid_request_header`. `If-Match: *` is accepted, but the module still applies its conservative floor — replacing another reviewer's different value without a tag answers `409 OCR_REVIEW_CONFLICT`, so `*` is not a way to skip the guard. `POST /documents/{documentID}/review/corrections` replaces one word's text and appends a `CORRECTED` judgement in one call.
+
+    ## Errors
+
+    Every error body is `{ "error": { "code": "...", "message": "..." } }` with the HTTP status on the response. Codes you will meet: `invalid_request_header` (400, a malformed `If-Match`); `API_KEY_NOT_FOUND`, `API_SECRET_NOT_FOUND`, `INVALID_API_CREDENTIALS` (401); `ACCESS_DENIED`, `VIEW_ONLY_ACCESS`, `ORG_SUBSCRIPTION_INACTIVE`, `API_CREDITS_INSUFFICIENT`, `LC_INSUFFICIENT` (403); `OCR_DOCUMENT_NOT_RETRYABLE`, `OCR_DOCUMENT_NOT_READY`, `OCR_REVIEW_CONFLICT` (409); 413 over the 10 MiB cap; 415 on a media type outside the five accepted; `ocr_review_precondition_required` (428, no `If-Match`); `RATE_LIMIT_EXCEEDED`, `BURST_RATE_LIMIT_EXCEEDED` (429); `OCR_NOT_CONFIGURED`, `OCR_READ_QUEUE_FULL`, `PERMISSIONS_UPDATING`, `FEATURE_DISABLED` (503).
+  version: "1.0.0"
+  contact:
+    name: "Bayanichain"
+    url: "https://bayanichain.com"
+  license:
+    name: "MIT"
+
+servers:
+  - url: "https://api.staging.nonlive.lumen.bayanichain.tech/ocr"
+    description: "Injected at runtime via VITE_APIM_ORIGIN"
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: "apiKey"
+      in: "header"
+      name: "lumen-api-key"
+      description: "Your Developer API Key from the Lumen Organization Portal (Settings → API Keys)"
+    ApiSecretAuth:
+      type: "apiKey"
+      in: "header"
+      name: "lumen-api-secret"
+      description: "Your Developer API Secret from the Lumen Organization Portal (Settings → API Keys)"
+
+# ═══════════════════════════════════════════════════════════════════
+# PATHS
+# ═══════════════════════════════════════════════════════════════════
+
+paths:
+
+  # ─── DOCUMENTS ────────────────────────────────────
+  /documents:
+    post:
+      operationId: uploadOcrDocument
+      x-lumen-new: true
+      x-lumen-preview: true
+      tags:
+        - Documents
+      summary: Upload a document for reading
+      description: Accepts a document two ways, told apart by `Content-Type`. A JSON descriptor creates a PENDING record and answers 201; the bytes then travel out of band. A document body — `Content-Type` one of the accepted media types, with the display name percent-encoded in `X-Lumen-Document-Name` — is stored and scheduled in one request and answers 202 with a `Location` header. This is the metered call of the module — it schedules a per-page engine charge — so it requires a positive Lumen Credit balance. The 6 API credits are charged only when the read ends READY or PARTIAL; a FAILED read, bytes that never landed and a 201 descriptor upload charge nothing.
+      parameters:
+        - name: X-Lumen-Document-Name
+          in: header
+          required: false
+          description: Percent-encoded UTF-8 display name, 1-256 characters after decoding. Required in document-body mode, ignored in descriptor mode.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - Name
+                - MediaType
+                - ByteSize
+              properties:
+                Name:
+                  type: string
+                  example: invoice-2026-09.pdf
+                MediaType:
+                  type: string
+                  enum:
+                    - application/pdf
+                    - image/png
+                    - image/jpeg
+                    - image/tiff
+                    - image/webp
+                ByteSize:
+                  type: integer
+          application/pdf:
+            schema:
+              type: string
+              format: binary
+          image/png:
+            schema:
+              type: string
+              format: binary
+          image/jpeg:
+            schema:
+              type: string
+              format: binary
+          image/tiff:
+            schema:
+              type: string
+              format: binary
+          image/webp:
+            schema:
+              type: string
+              format: binary
+      responses:
+        "201":
+          description: Descriptor accepted; the record is PENDING and awaits its bytes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    required:
+                      - DocumentID
+                      - Name
+                      - MediaType
+                      - ByteSize
+                      - PageCount
+                      - Status
+                      - FailedPageNumbers
+                      - CreatedTS
+                    properties:
+                      DocumentID:
+                        type: string
+                      Name:
+                        type: string
+                      MediaType:
+                        type: string
+                        enum:
+                          - application/pdf
+                          - image/png
+                          - image/jpeg
+                          - image/tiff
+                          - image/webp
+                      ByteSize:
+                        type: integer
+                      PageCount:
+                        type: integer
+                        description: Pages recognised so far; 0 until the read completes.
+                      Status:
+                        type: string
+                        enum:
+                          - PENDING
+                          - PROCESSING
+                          - READY
+                          - PARTIAL
+                          - FAILED
+                      FailedPageNumbers:
+                        type: array
+                        items:
+                          type: integer
+                      CreatedTS:
+                        type: integer
+                        description: Epoch seconds.
+                      Engine:
+                        type: object
+                        description: The engine that read the document. Absent until a read has run.
+                        properties:
+                          name:
+                            type: string
+                          version:
+                            type: string
+                          unit:
+                            type: string
+                            enum:
+                              - word
+                              - line
+                              - block
+                              - page
+                      FailureReason:
+                        type: string
+                        enum:
+                          - timeout
+                          - unavailable
+                          - unsupported_media
+                          - corrupt_document
+                          - invalid_request
+                        description: Present when Status is FAILED or PARTIAL.
+                      ReadCompletedTS:
+                        type: integer
+                        description: Epoch seconds. Present once a read has finished.
+                  requestId:
+                    type: string
+        "202":
+          description: Bytes accepted, stored and scheduled for reading; the `Location` header is `/ocr/documents/{DocumentID}` on the gateway
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    required:
+                      - DocumentID
+                      - Name
+                      - MediaType
+                      - ByteSize
+                      - PageCount
+                      - Status
+                      - FailedPageNumbers
+                      - CreatedTS
+                    properties:
+                      DocumentID:
+                        type: string
+                      Name:
+                        type: string
+                      MediaType:
+                        type: string
+                        enum:
+                          - application/pdf
+                          - image/png
+                          - image/jpeg
+                          - image/tiff
+                          - image/webp
+                      ByteSize:
+                        type: integer
+                      PageCount:
+                        type: integer
+                        description: Pages recognised so far; 0 until the read completes.
+                      Status:
+                        type: string
+                        enum:
+                          - PENDING
+                          - PROCESSING
+                          - READY
+                          - PARTIAL
+                          - FAILED
+                      FailedPageNumbers:
+                        type: array
+                        items:
+                          type: integer
+                      CreatedTS:
+                        type: integer
+                        description: Epoch seconds.
+                      Engine:
+                        type: object
+                        description: The engine that read the document. Absent until a read has run.
+                        properties:
+                          name:
+                            type: string
+                          version:
+                            type: string
+                          unit:
+                            type: string
+                            enum:
+                              - word
+                              - line
+                              - block
+                              - page
+                      FailureReason:
+                        type: string
+                        enum:
+                          - timeout
+                          - unavailable
+                          - unsupported_media
+                          - corrupt_document
+                          - invalid_request
+                        description: Present when Status is FAILED or PARTIAL.
+                      ReadCompletedTS:
+                        type: integer
+                        description: Epoch seconds. Present once a read has finished.
+                  requestId:
+                    type: string
+        "400":
+          description: Validation failed
+        "401":
+          description: Missing or invalid API credentials
+        "403":
+          description: Key not scoped to OCR, org refused, subscription inactive, or insufficient Lumen Credits
+        "413":
+          description: The document exceeds the module's byte cap
+        "415":
+          description: The media type is not one this module reads
+        "429":
+          description: Rate limit exceeded
+        "503":
+          description: OCR is not configured in this environment, or the read queue is full
+      security:
+        - ApiKeyAuth: []
+          ApiSecretAuth: []
+    get:
+      operationId: listOcrDocuments
+      x-lumen-new: true
+      x-lumen-preview: true
+      tags:
+        - Documents
+      summary: List documents
+      description: Lists the organization's OCR documents, newest first, with an opaque continuation token. Never returns another organization's documents.
+      parameters:
+        - name: Status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - PENDING
+              - PROCESSING
+              - READY
+              - PARTIAL
+              - FAILED
+        - name: Limit
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: ContinuationToken
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: A page of documents
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    required:
+                      - Items
+                    properties:
+                      Items:
+                        type: array
+                        items:
+                          type: object
+                          required:
+                            - DocumentID
+                            - Name
+                            - MediaType
+                            - ByteSize
+                            - PageCount
+                            - Status
+                            - FailedPageNumbers
+                            - CreatedTS
+                          properties:
+                            DocumentID:
+                              type: string
+                            Name:
+                              type: string
+                            MediaType:
+                              type: string
+                              enum:
+                                - application/pdf
+                                - image/png
+                                - image/jpeg
+                                - image/tiff
+                                - image/webp
+                            ByteSize:
+                              type: integer
+                            PageCount:
+                              type: integer
+                              description: Pages recognised so far; 0 until the read completes.
+                            Status:
+                              type: string
+                              enum:
+                                - PENDING
+                                - PROCESSING
+                                - READY
+                                - PARTIAL
+                                - FAILED
+                            FailedPageNumbers:
+                              type: array
+                              items:
+                                type: integer
+                            CreatedTS:
+                              type: integer
+                              description: Epoch seconds.
+                            Engine:
+                              type: object
+                              description: The engine that read the document. Absent until a read has run.
+                              properties:
+                                name:
+                                  type: string
+                                version:
+                                  type: string
+                                unit:
+                                  type: string
+                                  enum:
+                                    - word
+                                    - line
+                                    - block
+                                    - page
+                            FailureReason:
+                              type: string
+                              enum:
+                                - timeout
+                                - unavailable
+                                - unsupported_media
+                                - corrupt_document
+                                - invalid_request
+                              description: Present when Status is FAILED or PARTIAL.
+                            ReadCompletedTS:
+                              type: integer
+                              description: Epoch seconds. Present once a read has finished.
+                      ContinuationToken:
+                        type: string
+                        description: Opaque. Pass it back as `ContinuationToken` to read the next page; absent on the last page.
+                  requestId:
+                    type: string
+        "401":
+          description: Missing or invalid API credentials
+        "403":
+          description: Key not scoped to OCR, org refused, or subscription inactive
+        "429":
+          description: Rate limit exceeded
+        "503":
+          description: OCR is not configured in this environment
+      security:
+        - ApiKeyAuth: []
+          ApiSecretAuth: []
+
+  /documents/{documentID}:
+    get:
+      operationId: getOcrDocument
+      x-lumen-new: true
+      x-lumen-preview: true
+      tags:
+        - Documents
+      summary: Read one document record
+      description: Returns the document's status, page count, engine stamp and failure detail. A document belonging to another organization answers 404, identically to one that does not exist.
+      parameters:
+        - name: documentID
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The document record
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    required:
+                      - DocumentID
+                      - Name
+                      - MediaType
+                      - ByteSize
+                      - PageCount
+                      - Status
+                      - FailedPageNumbers
+                      - CreatedTS
+                    properties:
+                      DocumentID:
+                        type: string
+                      Name:
+                        type: string
+                      MediaType:
+                        type: string
+                        enum:
+                          - application/pdf
+                          - image/png
+                          - image/jpeg
+                          - image/tiff
+                          - image/webp
+                      ByteSize:
+                        type: integer
+                      PageCount:
+                        type: integer
+                        description: Pages recognised so far; 0 until the read completes.
+                      Status:
+                        type: string
+                        enum:
+                          - PENDING
+                          - PROCESSING
+                          - READY
+                          - PARTIAL
+                          - FAILED
+                      FailedPageNumbers:
+                        type: array
+                        items:
+                          type: integer
+                      CreatedTS:
+                        type: integer
+                        description: Epoch seconds.
+                      Engine:
+                        type: object
+                        description: The engine that read the document. Absent until a read has run.
+                        properties:
+                          name:
+                            type: string
+                          version:
+                            type: string
+                          unit:
+                            type: string
+                            enum:
+                              - word
+                              - line
+                              - block
+                              - page
+                      FailureReason:
+                        type: string
+                        enum:
+                          - timeout
+                          - unavailable
+                          - unsupported_media
+                          - corrupt_document
+                          - invalid_request
+                        description: Present when Status is FAILED or PARTIAL.
+                      ReadCompletedTS:
+                        type: integer
+                        description: Epoch seconds. Present once a read has finished.
+                  requestId:
+                    type: string
+        "401":
+          description: Missing or invalid API credentials
+        "404":
+          description: Document not found
+        "503":
+          description: OCR is not configured in this environment
+      security:
+        - ApiKeyAuth: []
+          ApiSecretAuth: []
+
+  /documents/{documentID}/retry:
+    post:
+      operationId: retryOcrDocument
+      x-lumen-new: true
+      x-lumen-preview: true
+      tags:
+        - Documents
+      summary: Re-queue a failed or stuck read
+      description: Allowed when the document is FAILED or PARTIAL, or PROCESSING with a read that started longer ago than the module's stale threshold; anything else is 409. The record returns to PENDING and the read is scheduled again. Metered like an upload, so it requires a positive Lumen Credit balance. The 3 API credits are charged only when the re-queued read ends READY or PARTIAL; a FAILED read charges nothing.
+      parameters:
+        - name: documentID
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "202":
+          description: The read was re-queued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    required:
+                      - DocumentID
+                      - Name
+                      - MediaType
+                      - ByteSize
+                      - PageCount
+                      - Status
+                      - FailedPageNumbers
+                      - CreatedTS
+                    properties:
+                      DocumentID:
+                        type: string
+                      Name:
+                        type: string
+                      MediaType:
+                        type: string
+                        enum:
+                          - application/pdf
+                          - image/png
+                          - image/jpeg
+                          - image/tiff
+                          - image/webp
+                      ByteSize:
+                        type: integer
+                      PageCount:
+                        type: integer
+                        description: Pages recognised so far; 0 until the read completes.
+                      Status:
+                        type: string
+                        enum:
+                          - PENDING
+                          - PROCESSING
+                          - READY
+                          - PARTIAL
+                          - FAILED
+                      FailedPageNumbers:
+                        type: array
+                        items:
+                          type: integer
+                      CreatedTS:
+                        type: integer
+                        description: Epoch seconds.
+                      Engine:
+                        type: object
+                        description: The engine that read the document. Absent until a read has run.
+                        properties:
+                          name:
+                            type: string
+                          version:
+                            type: string
+                          unit:
+                            type: string
+                            enum:
+                              - word
+                              - line
+                              - block
+                              - page
+                      FailureReason:
+                        type: string
+                        enum:
+                          - timeout
+                          - unavailable
+                          - unsupported_media
+                          - corrupt_document
+                          - invalid_request
+                        description: Present when Status is FAILED or PARTIAL.
+                      ReadCompletedTS:
+                        type: integer
+                        description: Epoch seconds. Present once a read has finished.
+                  requestId:
+                    type: string
+        "401":
+          description: Missing or invalid API credentials
+        "403":
+          description: Key not scoped to OCR, org refused, subscription inactive, or insufficient Lumen Credits
+        "404":
+          description: Document not found
+        "409":
+          description: The document is not in a retryable state
+        "429":
+          description: Rate limit exceeded
+        "503":
+          description: OCR is not configured in this environment, or the read queue is full
+      security:
+        - ApiKeyAuth: []
+          ApiSecretAuth: []
+
+  /documents/{documentID}/file:
+    get:
+      operationId: downloadOcrDocumentFile
+      x-lumen-new: true
+      x-lumen-preview: true
+      tags:
+        - Documents
+      summary: Download the stored document bytes
+      description: Streams the bytes exactly as uploaded, with the record's media type, an inline content disposition, a private no-store cache control and a nosniff content-type-options header. Missing, archived and another organization's documents answer the same 404.
+      parameters:
+        - name: documentID
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The stored bytes
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        "401":
+          description: Missing or invalid API credentials
+        "404":
+          description: Document not found
+        "503":
+          description: OCR is not configured in this environment
+      security:
+        - ApiKeyAuth: []
+          ApiSecretAuth: []
+
+  # ─── PAGES ────────────────────────────────────────
+  /documents/{documentID}/pages:
+    get:
+      operationId: listOcrPages
+      x-lumen-new: true
+      x-lumen-preview: true
+      tags:
+        - Pages
+      summary: List the pages of a document
+      description: Returns one entry per page that was read, with its origin (text layer or rasterised), geometry, confidence and the transform back to the source page. The `IncludesWords` flag states whether word arrays are present, so an empty page and an omitted one are never confused.
+      parameters:
+        - name: documentID
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: IncludeWords
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: The document's pages
+        "401":
+          description: Missing or invalid API credentials
+        "404":
+          description: Document not found
+        "503":
+          description: OCR is not configured in this environment
+      security:
+        - ApiKeyAuth: []
+          ApiSecretAuth: []
+
+  /documents/{documentID}/pages/{pageNumber}:
+    get:
+      operationId: getOcrPage
+      x-lumen-new: true
+      x-lumen-preview: true
+      tags:
+        - Pages
+      summary: Read one page
+      description: Returns a single page with its words, lines, raster description and confidence. A page that failed to read has no record and answers 404 — which is a different fact from a page that was read and found nothing.
+      parameters:
+        - name: documentID
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: pageNumber
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        "200":
+          description: The page
+        "401":
+          description: Missing or invalid API credentials
+        "404":
+          description: Document or page not found
+        "503":
+          description: OCR is not configured in this environment
+      security:
+        - ApiKeyAuth: []
+          ApiSecretAuth: []
+
+  # ─── REVIEW ───────────────────────────────────────
+  /documents/{documentID}/reviews:
+    post:
+      operationId: submitOcrReview
+      x-lumen-new: true
+      x-lumen-preview: true
+      tags:
+        - Review
+      summary: Submit a review judgement
+      description: Appends a CONFIRMED, CORRECTED or REJECTED judgement against a word or a field. Carry the target's current entity tag in `If-Match`; a judgement made against a stale view answers 409 so no correction is silently discarded. Answers 201 with a strong `ETag` for the new revision.
+      parameters:
+        - name: documentID
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: If-Match
+          in: header
+          required: true
+          description: The target's entity tag, from `GET .../reviews/revision` or the previous 201's `ETag`. `*` is accepted (no revision check), but the module still applies its conservative floor — replacing another reviewer's different value without a tag answers 409 OCR_REVIEW_CONFLICT, so `*` is not a way to skip the guard. Absent or blank answers 428 ocr_review_precondition_required; malformed (not 32 lower-case hex, not `*`) answers 400 invalid_request_header.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - Target
+                - Action
+              properties:
+                Target:
+                  type: object
+                  description: A word target (Kind, PageNumber, WordIndex) or a field target (Kind, FieldPath).
+                Action:
+                  type: string
+                  enum:
+                    - CONFIRMED
+                    - CORRECTED
+                    - REJECTED
+                CorrectedValue:
+                  type: string
+                Note:
+                  type: string
+      responses:
+        "201":
+          description: The judgement was recorded; the `ETag` response header is the strong entity tag of the new revision, the `If-Match` for the next judgement on the same target
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    required:
+                      - ReviewID
+                      - DocumentID
+                      - Target
+                      - Action
+                      - OriginalValue
+                      - OriginalConfidence
+                      - CorrectedValue
+                      - Engine
+                      - ReviewedBy
+                      - ReviewedTS
+                    properties:
+                      ReviewID:
+                        type: string
+                      DocumentID:
+                        type: string
+                      Target:
+                        type: object
+                        description: "A word target (`Kind: word`, `PageNumber`, `WordIndex`) or a field target (`Kind: field`, `FieldPath`)."
+                        required:
+                          - Kind
+                        properties:
+                          Kind:
+                            type: string
+                            enum:
+                              - word
+                              - field
+                          PageNumber:
+                            type: integer
+                            description: Word targets only. 1-based.
+                          WordIndex:
+                            type: integer
+                            description: Word targets only. 0-based index into the page's Words array.
+                          FieldPath:
+                            type: string
+                            description: Field targets only.
+                      Action:
+                        type: string
+                        enum:
+                          - CONFIRMED
+                          - CORRECTED
+                          - REJECTED
+                      OriginalValue:
+                        type: string
+                        description: What the machine read at the target when the judgement was made.
+                      OriginalConfidence:
+                        type: object
+                        description: "The machine's confidence in OriginalValue. `measured: true` carries `value` and `unit`; `measured: false` carries `reason`."
+                        required:
+                          - measured
+                        properties:
+                          measured:
+                            type: boolean
+                          value:
+                            type: number
+                          unit:
+                            type: string
+                            enum:
+                              - word
+                              - line
+                              - block
+                              - page
+                          reason:
+                            type: string
+                            enum:
+                              - not_reported
+                              - human_supplied
+                      CorrectedValue:
+                        type: string
+                        description: The value supplied with a CORRECTED judgement; empty otherwise.
+                      Engine:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                          version:
+                            type: string
+                          unit:
+                            type: string
+                            enum:
+                              - word
+                              - line
+                              - block
+                              - page
+                      ReviewedBy:
+                        type: string
+                        description: The principal that submitted the judgement (on this surface, the API key).
+                      ReviewedTS:
+                        type: integer
+                        description: Epoch seconds.
+                      Note:
+                        type: string
+                  requestId:
+                    type: string
+        "400":
+          description: Validation failed, or `If-Match` is malformed (code invalid_request_header)
+        "401":
+          description: Missing or invalid API credentials
+        "404":
+          description: Document, page or target not found
+        "409":
+          description: The judgement was made against a stale revision, or `*` would replace another reviewer's different value (code OCR_REVIEW_CONFLICT)
+        "428":
+          description: The request carried no `If-Match`, or a blank one (code ocr_review_precondition_required); enforced by the developer surface before the request reaches the module
+        "429":
+          description: Rate limit exceeded
+        "503":
+          description: OCR is not configured in this environment
+      security:
+        - ApiKeyAuth: []
+          ApiSecretAuth: []
+    get:
+      operationId: listOcrReviews
+      x-lumen-new: true
+      x-lumen-preview: true
+      tags:
+        - Review
+      summary: List the review judgements of a document
+      description: Returns the judgement log — target, original value and confidence, corrected value, reviewer and time — oldest first. Reviews are evidence and are never deleted.
+      parameters:
+        - name: documentID
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The judgement log, oldest first
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    required:
+                      - Items
+                    properties:
+                      Items:
+                        type: array
+                        items:
+                          type: object
+                          required:
+                            - ReviewID
+                            - DocumentID
+                            - Target
+                            - Action
+                            - OriginalValue
+                            - OriginalConfidence
+                            - CorrectedValue
+                            - Engine
+                            - ReviewedBy
+                            - ReviewedTS
+                          properties:
+                            ReviewID:
+                              type: string
+                            DocumentID:
+                              type: string
+                            Target:
+                              type: object
+                              description: "A word target (`Kind: word`, `PageNumber`, `WordIndex`) or a field target (`Kind: field`, `FieldPath`)."
+                              required:
+                                - Kind
+                              properties:
+                                Kind:
+                                  type: string
+                                  enum:
+                                    - word
+                                    - field
+                                PageNumber:
+                                  type: integer
+                                  description: Word targets only. 1-based.
+                                WordIndex:
+                                  type: integer
+                                  description: Word targets only. 0-based index into the page's Words array.
+                                FieldPath:
+                                  type: string
+                                  description: Field targets only.
+                            Action:
+                              type: string
+                              enum:
+                                - CONFIRMED
+                                - CORRECTED
+                                - REJECTED
+                            OriginalValue:
+                              type: string
+                              description: What the machine read at the target when the judgement was made.
+                            OriginalConfidence:
+                              type: object
+                              description: "The machine's confidence in OriginalValue. `measured: true` carries `value` and `unit`; `measured: false` carries `reason`."
+                              required:
+                                - measured
+                              properties:
+                                measured:
+                                  type: boolean
+                                value:
+                                  type: number
+                                unit:
+                                  type: string
+                                  enum:
+                                    - word
+                                    - line
+                                    - block
+                                    - page
+                                reason:
+                                  type: string
+                                  enum:
+                                    - not_reported
+                                    - human_supplied
+                            CorrectedValue:
+                              type: string
+                              description: The value supplied with a CORRECTED judgement; empty otherwise.
+                            Engine:
+                              type: object
+                              properties:
+                                name:
+                                  type: string
+                                version:
+                                  type: string
+                                unit:
+                                  type: string
+                                  enum:
+                                    - word
+                                    - line
+                                    - block
+                                    - page
+                            ReviewedBy:
+                              type: string
+                              description: The principal that submitted the judgement (on this surface, the API key).
+                            ReviewedTS:
+                              type: integer
+                              description: Epoch seconds.
+                            Note:
+                              type: string
+                  requestId:
+                    type: string
+        "401":
+          description: Missing or invalid API credentials
+        "404":
+          description: Document not found
+        "503":
+          description: OCR is not configured in this environment
+      security:
+        - ApiKeyAuth: []
+          ApiSecretAuth: []
+
+  /documents/{documentID}/reviews/revision:
+    get:
+      operationId: getOcrReviewRevision
+      x-lumen-new: true
+      x-lumen-preview: true
+      tags:
+        - Review
+      summary: Get the current entity tag of a review target
+      description: Answers the strong entity tag for the target named in the query, so a client can carry a real `If-Match` on its FIRST judgement of that target — the one token no earlier response could have given it.
+      parameters:
+        - name: documentID
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: Kind
+          in: query
+          required: true
+          schema:
+            type: string
+            enum:
+              - word
+              - field
+        - name: PageNumber
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: WordIndex
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: FieldPath
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The target's entity tag
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    required:
+                      - ETag
+                    properties:
+                      ETag:
+                        type: string
+                        description: 'The quoted strong entity tag, e.g. "\"<32 hex>\"" — exactly what the next `If-Match` should carry.'
+                  requestId:
+                    type: string
+        "400":
+          description: The target query is not valid
+        "401":
+          description: Missing or invalid API credentials
+        "404":
+          description: Document not found
+        "503":
+          description: OCR is not configured in this environment
+      security:
+        - ApiKeyAuth: []
+          ApiSecretAuth: []
+
+  /documents/{documentID}/review:
+    get:
+      operationId: getOcrReviewEnvelope
+      x-lumen-new: true
+      x-lumen-preview: true
+      tags:
+        - Review
+      summary: Read the review envelope of a document
+      description: The review widget's canonical document read — engine stamp, fingerprint, aggregate confidence and the banding thresholds the server uses. The `pages` array is empty on purpose; pages load lazily through the page route. Answers 409 while the document is PENDING, PROCESSING or FAILED.
+      parameters:
+        - name: documentID
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The review envelope
+        "401":
+          description: Missing or invalid API credentials
+        "404":
+          description: Document not found
+        "409":
+          description: The document has not been read yet
+        "503":
+          description: OCR is not configured in this environment
+      security:
+        - ApiKeyAuth: []
+          ApiSecretAuth: []
+
+  /documents/{documentID}/review/pages/{pageNumber}:
+    get:
+      operationId: getOcrReviewPage
+      x-lumen-new: true
+      x-lumen-preview: true
+      tags:
+        - Review
+      summary: Read one page for review
+      description: The page in the review widget's shape — words, lines, the transform back to the source page, the raster description, the per-page origin and confidence.
+      parameters:
+        - name: documentID
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: pageNumber
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        "200":
+          description: The page
+        "401":
+          description: Missing or invalid API credentials
+        "404":
+          description: Document or page not found
+        "503":
+          description: OCR is not configured in this environment
+      security:
+        - ApiKeyAuth: []
+          ApiSecretAuth: []
+
+  /documents/{documentID}/review/corrections:
+    post:
+      operationId: correctOcrWord
+      x-lumen-new: true
+      x-lumen-preview: true
+      tags:
+        - Review
+      summary: Correct one recognised word
+      description: Replaces the text of a single word and appends a CORRECTED judgement. The `documentId` must equal the path; `fingerprint`, when present, must equal the record's. The corrected word comes back with an unmeasured, human-supplied confidence — never a fabricated score.
+      parameters:
+        - name: documentID
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - documentId
+                - pageNumber
+                - wordIndex
+                - text
+              properties:
+                documentId:
+                  type: string
+                pageNumber:
+                  type: integer
+                  minimum: 1
+                wordIndex:
+                  type: integer
+                  minimum: 0
+                text:
+                  type: string
+                  minLength: 1
+                  maxLength: 512
+                fingerprint:
+                  type: string
+                metadata:
+                  type: object
+      responses:
+        "201":
+          description: The corrected word
+        "400":
+          description: Validation failed, or the word does not exist
+        "401":
+          description: Missing or invalid API credentials
+        "404":
+          description: Document or page not found
+        "409":
+          description: The correction was made against a stale fingerprint
+        "429":
+          description: Rate limit exceeded
+        "503":
+          description: OCR is not configured in this environment
+      security:
+        - ApiKeyAuth: []
+          ApiSecretAuth: []
+
+tags:
+  - name: "Documents"
+    description: "Upload documents, follow a read, download the stored bytes"
+  - name: "Pages"
+    description: "Read the recognised pages, words and lines"
+  - name: "Review"
+    description: "Record judgements and corrections with optimistic concurrency"

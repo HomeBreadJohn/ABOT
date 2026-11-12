@@ -1,0 +1,12 @@
+{
+  "_note": "SYNTHETIC fixture authored by hand for tests. Not captured from Lumen. No real PII. Matches GET /instances in docs/lumen/ai-chat-openapi.yaml.",
+  "Instances": [
+    {
+      "InstanceID": "inst-synthetic-0001",
+      "Name": "Document Intelligence Assistant",
+      "Description": "Synthetic test instance for document analysis.",
+      "Status": "ACTIVE"
+    }
+  ],
+  "Count": 1
+}
