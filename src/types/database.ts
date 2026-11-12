@@ -281,14 +281,14 @@ isOneToOne: false
                   ]
                 },"messages": {
                   Row: {
-                    "content": string,"conversation_id": string,"created_at": string,"id": string,"role": string,"user_id": string
+                    "content": string,"conversation_id": string,"created_at": string,"evidence_ids": string[],"id": string,"role": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "content": string,"conversation_id": string,"created_at"?: string,"id"?: string,"role": string,"user_id": string
+                    "content": string,"conversation_id": string,"created_at"?: string,"evidence_ids"?: string[],"id"?: string,"role": string,"user_id": string
                   }
                   Update: {
-                    "content"?: string,"conversation_id"?: string,"created_at"?: string,"id"?: string,"role"?: string,"user_id"?: string
+                    "content"?: string,"conversation_id"?: string,"created_at"?: string,"evidence_ids"?: string[],"id"?: string,"role"?: string,"user_id"?: string
                   }
                   Relationships: [
                     {
