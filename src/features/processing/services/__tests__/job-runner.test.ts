@@ -184,27 +184,33 @@ describe("runDueJobs", () => {
     expect(mem.rows[0].status).toBe("completed");
   });
 
-  it("schedules RETRY_SCHEDULED with exponential 5s/20s/80s backoff", async () => {
+  it("schedules a retry using the handler's requested afterMs", async () => {
     const mem = createMemoryStore();
     registerJobHandler("ANALYZE", async () => ({
       kind: "retry",
-      afterMs: 1_000,
+      afterMs: 3_000,
       reason: "provider busy",
     }));
     const row = mem.seed({ jobType: "ANALYZE" });
 
     await runDueJobs(45_000, mem.store, mem.clock);
+
     expect(row.status).toBe("RETRY_SCHEDULED");
-    // attempts === 1 after first claim -> 5s
-    expect(row.runAfter).toBe(mem.now + 5_000);
+    expect(row.runAfter).toBe(mem.now + 3_000);
+  });
 
-    mem.advance(5_000);
-    await runDueJobs(45_000, mem.store, mem.clock);
-    expect(row.runAfter).toBe(mem.now + 20_000); // attempts 2 -> 20s
+  it("clamps a retry's afterMs to 60s", async () => {
+    const mem = createMemoryStore();
+    registerJobHandler("ANALYZE", async () => ({
+      kind: "retry",
+      afterMs: 120_000,
+      reason: "provider busy",
+    }));
+    const row = mem.seed({ jobType: "ANALYZE" });
 
-    mem.advance(20_000);
     await runDueJobs(45_000, mem.store, mem.clock);
-    expect(row.runAfter).toBe(mem.now + 80_000); // attempts 3 -> 80s
+
+    expect(row.runAfter).toBe(mem.now + 60_000);
   });
 
   it("fails with MAX_ATTEMPTS once attempts exceed max", async () => {
@@ -284,6 +290,25 @@ describe("runDueJobs", () => {
 
     expect(row.status).toBe("RETRY_SCHEDULED");
     expect(row.runAfter).toBe(mem.now + 5_000);
+  });
+
+  it("uses exponential 5s/20s/80s backoff for a thrown handler error", async () => {
+    const mem = createMemoryStore();
+    registerJobHandler("ANALYZE", async () => {
+      throw new Error("boom");
+    });
+    const row = mem.seed({ jobType: "ANALYZE" });
+
+    await runDueJobs(45_000, mem.store, mem.clock);
+    expect(row.runAfter).toBe(mem.now + 5_000); // attempt 1 -> 5s
+
+    mem.advance(5_000);
+    await runDueJobs(45_000, mem.store, mem.clock);
+    expect(row.runAfter).toBe(mem.now + 20_000); // attempt 2 -> 20s
+
+    mem.advance(20_000);
+    await runDueJobs(45_000, mem.store, mem.clock);
+    expect(row.runAfter).toBe(mem.now + 80_000); // attempt 3 -> 80s
   });
 
   it("enqueues follow-up jobs on done with next", async () => {

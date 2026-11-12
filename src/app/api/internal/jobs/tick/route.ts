@@ -2,6 +2,7 @@ import { createHash, timingSafeEqual } from "node:crypto";
 
 import { getJobRunnerSecret } from "@/lib/env/server";
 import { runDueJobs } from "@/features/processing/services/job-runner";
+import { registerPipelineHandlers } from "@/features/intelligence/services/register-pipeline-handlers";
 
 export const maxDuration = 60;
 
@@ -21,6 +22,7 @@ export async function POST(request: Request): Promise<Response> {
     return new Response(null, { status: 401 });
   }
 
+  registerPipelineHandlers();
   const { ran } = await runDueJobs(TICK_BUDGET_MS);
   return Response.json({ ran });
 }

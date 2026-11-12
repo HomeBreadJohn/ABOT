@@ -110,24 +110,28 @@ async function runOne(job: ClaimedJob, store: JobStore): Promise<void> {
     return;
   }
   if (outcome.kind === "retry") {
-    await retryOrFail(job, store, undefined);
+    await retryOrFail(job, store, undefined, Math.min(outcome.afterMs, 60_000));
     return;
   }
   await store.fail(job.id, outcome.errorCode);
 }
 
-/** Schedule the next attempt with exponential backoff, or fail at the cap. */
+/**
+ * Schedule the next attempt, or fail at the cap. A handler's `retry` passes
+ * its own `delayMs`; a thrown error passes none and gets exponential backoff.
+ */
 async function retryOrFail(
   job: ClaimedJob,
   store: JobStore,
   errorCode: string | undefined,
+  delayMs?: number,
 ): Promise<void> {
   if (job.attempts >= job.maxAttempts) {
     await store.fail(job.id, "MAX_ATTEMPTS");
     return;
   }
-  const delayMs = BACKOFF_BASE_MS * Math.pow(4, job.attempts - 1);
-  await store.scheduleRetry(job.id, delayMs, errorCode);
+  const delay = delayMs ?? BACKOFF_BASE_MS * Math.pow(4, job.attempts - 1);
+  await store.scheduleRetry(job.id, delay, errorCode);
 }
 
 /**

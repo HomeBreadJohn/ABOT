@@ -2,13 +2,25 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const getJobRunnerSecret = vi.fn();
 const runDueJobs = vi.fn();
+const registerPipelineHandlers = vi.fn();
+const callOrder: string[] = [];
 
 vi.mock("@/lib/env/server", () => ({
   getJobRunnerSecret: () => getJobRunnerSecret(),
 }));
 
 vi.mock("@/features/processing/services/job-runner", () => ({
-  runDueJobs: (...args: unknown[]) => runDueJobs(...args),
+  runDueJobs: (...args: unknown[]) => {
+    callOrder.push("runDueJobs");
+    return runDueJobs(...args);
+  },
+}));
+
+vi.mock("@/features/intelligence/services/register-pipeline-handlers", () => ({
+  registerPipelineHandlers: () => {
+    callOrder.push("registerPipelineHandlers");
+    return registerPipelineHandlers();
+  },
 }));
 
 // Avoid pulling next/server's after into the unit test path.
@@ -28,6 +40,7 @@ function request(secret: string | null) {
 describe("POST /api/internal/jobs/tick", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    callOrder.length = 0;
     getJobRunnerSecret.mockReturnValue("the-real-secret");
   });
 
@@ -53,5 +66,20 @@ describe("POST /api/internal/jobs/tick", () => {
     expect(runDueJobs).toHaveBeenCalledWith(45_000);
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ ran: 3 });
+  });
+
+  it("registers pipeline handlers before running jobs", async () => {
+    runDueJobs.mockResolvedValue({ ran: 0 });
+
+    await POST(request("the-real-secret"));
+
+    expect(registerPipelineHandlers).toHaveBeenCalledTimes(1);
+    expect(callOrder).toEqual(["registerPipelineHandlers", "runDueJobs"]);
+  });
+
+  it("does not register handlers when the secret is wrong", async () => {
+    await POST(request("wrong-secret"));
+
+    expect(registerPipelineHandlers).not.toHaveBeenCalled();
   });
 });
