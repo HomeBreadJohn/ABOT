@@ -1,10 +1,30 @@
-import { FileText, Upload } from "lucide-react";
-
 import { PageHeader } from "@/components/shared/page-header";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { DocumentList } from "@/features/documents/components/document-list";
+import { VaultEmptyState } from "@/features/documents/components/vault-empty-state";
+import { VaultToolbar } from "@/features/documents/components/vault-toolbar";
+import { parseVaultQuery } from "@/features/documents/schemas/vault-query";
+import {
+  filterAndSortDocuments,
+  toDocumentCardView,
+} from "@/features/documents/view-models";
 
-export default function DocumentsPage() {
+import { MOCK_DOCUMENTS, MOCK_TODAY } from "./mock-documents";
+
+export default async function DocumentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const query = parseVaultQuery(await searchParams);
+  const context = { today: MOCK_TODAY, deadlineItems: [] as const };
+
+  const matches = filterAndSortDocuments(MOCK_DOCUMENTS, query, context);
+  const cards = matches.map((document) =>
+    toDocumentCardView(document, context),
+  );
+  const hasSearchOrFilter =
+    query.q !== "" || query.category !== "all" || query.status !== "all";
+
   return (
     <div className="mx-auto max-w-6xl min-w-0">
       <PageHeader
@@ -12,23 +32,16 @@ export default function DocumentsPage() {
         title="Documents"
         description="A private place for the documents you choose to organize and understand."
       />
-      <Card>
-        <CardContent className="flex flex-col items-center justify-center px-4 py-12 text-center sm:px-6 sm:py-16">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100">
-            <FileText className="h-7 w-7 text-slate-600" aria-hidden="true" />
-          </div>
-          <h2 className="mt-5 text-lg font-semibold text-slate-950">
-            No documents yet
-          </h2>
-          <p className="mt-2 max-w-md text-sm leading-6 text-slate-500">
-            Document upload and processing will be introduced in a later product
-            phase. This page intentionally contains no fabricated document data.
-          </p>
-          <Button className="mt-6" disabled>
-            <Upload className="h-4 w-4" aria-hidden="true" /> Upload coming soon
-          </Button>
-        </CardContent>
-      </Card>
+      <div className="grid gap-4">
+        <VaultToolbar query={query} />
+        {cards.length > 0 ? (
+          <DocumentList documents={cards} />
+        ) : (
+          <VaultEmptyState
+            variant={hasSearchOrFilter ? "no-matches" : "no-documents"}
+          />
+        )}
+      </div>
     </div>
   );
 }
