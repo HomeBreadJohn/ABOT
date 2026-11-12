@@ -16,6 +16,9 @@ export default defineConfig({
       ...(process.argv.some((arg) => arg.includes(".integration.test."))
         ? []
         : ["**/*.integration.test.ts"]),
+      ...(process.argv.some((arg) => arg.includes("src/test/evals"))
+        ? []
+        : ["**/*.eval.test.ts"]),
       "**/node_modules/**",
       "**/dist/**",
     ],

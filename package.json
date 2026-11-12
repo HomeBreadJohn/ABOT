@@ -12,6 +12,7 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:rls": "vitest run src/test/rls.integration.test.ts",
+    "test:evals": "vitest run src/test/evals",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
