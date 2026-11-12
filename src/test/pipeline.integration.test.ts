@@ -541,4 +541,84 @@ describe("pipeline end-to-end (handler chain with fakes)", () => {
     expect(finding!.evidenceIds).toEqual([]);
     expect(validated.evidence).toHaveLength(0);
   });
+
+  it("marks evidence over a corrected word range as USER_CORRECTION (B18)", async () => {
+    const documentId = "66666666-6666-6666-6666-666666666666";
+
+    // Effective pages: words 0..3 are the amount line, word 3 corrected by the
+    // user (sourceType USER_CORRECTION). Evidence mapped onto that span must
+    // inherit the USER_CORRECTION source, not the default OCR_TEXT.
+    const pages = [
+      {
+        pageNumber: 1,
+        status: "READY" as const,
+        text: "Amount Due: PHP 1,260.00",
+        words: [
+          { index: 0, text: "Amount", confidence: 0.95, sourceType: "OCR_TEXT" as const },
+          { index: 1, text: "Due:", confidence: 0.95, sourceType: "OCR_TEXT" as const },
+          { index: 2, text: "PHP", confidence: 0.95, sourceType: "OCR_TEXT" as const },
+          {
+            index: 3,
+            text: "1,260.00",
+            confidence: 0.95,
+            sourceType: "USER_CORRECTION" as const,
+          },
+        ],
+        averageConfidence: 0.95,
+      },
+    ];
+
+    const chat = new MockChatProvider();
+    chat.respondWith(
+      (m) => m.includes("You classify a document"),
+      JSON.stringify({
+        category: "UTILITIES",
+        subtype: "Electricity bill",
+        issuer: "Sample Electric Cooperative",
+        confidence: 0.95,
+        candidates: [{ category: "UTILITIES", confidence: 0.95 }],
+      }),
+    );
+    chat.respondWith(
+      (m) => m.includes("per-chunk analysis"),
+      JSON.stringify({
+        findings: [
+          {
+            type: "KEY_INFORMATION",
+            title: "Amount due",
+            explanation: "The bill states PHP 1,260.00 is due.",
+            informationStatus: "FOUND",
+            confidence: 0.9,
+            basis: "Billing summary line.",
+            quote: "Amount Due: PHP 1,260.00",
+            page: 1,
+          },
+        ],
+      }),
+    );
+    chat.respondWith(
+      (m) => m.includes("Consolidate these findings"),
+      JSON.stringify({
+        overview: "A monthly electricity bill.",
+        explanation: "This is your electricity bill for the month.",
+      }),
+    );
+
+    const engine = new RealAnalysisEngine(chat);
+    const { result } = await engine.analyze({
+      documentId,
+      pages: pages as unknown as NormalizedPage[],
+      corrections: [],
+      language: "EN",
+    });
+
+    const validated = parseAnalysisResult(result, { documentId });
+    const finding = validated.keyInformation.find((f) => f.title === "Amount due");
+    expect(finding).toBeDefined();
+    const evidence = validated.evidence.find((e) =>
+      finding!.evidenceIds.includes(e.id),
+    );
+    expect(evidence).toBeDefined();
+    expect(evidence!.sourceType).toBe("USER_CORRECTION");
+  });
 });

@@ -62,7 +62,8 @@ function mapEvidence(
           documentId,
           pageNumber: match.pageNumber,
           excerpt: match.excerpt,
-          sourceType: "OCR_TEXT",
+          // USER_CORRECTION when the matched span covers user-corrected words.
+          sourceType: match.sourceType,
           wordStart: match.wordStart,
           wordEnd: match.wordEnd,
           matchConfidence: match.matchConfidence,

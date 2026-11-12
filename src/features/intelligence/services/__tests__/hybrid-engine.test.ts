@@ -356,4 +356,64 @@ describe("HybridAnalysisEngine", () => {
   it("exposes PROMPT_VERSION", () => {
     expect(PROMPT_VERSION).toBe("1");
   });
+
+  it("targeted reanalysis: a page-1 change re-sends only the page-1 chunk; others hit the cache", async () => {
+    // One chunk per page (each page ~2000 chars). The same engine instance
+    // runs twice; the second run changes only page 1's text, so only its chunk
+    // misses the cache and sends a message.
+    const { engine, messages } = makeEngine();
+    const pages = multiChunkPages();
+
+    const input = {
+      documentId: "doc-1",
+      corrections: [],
+      language: "EN" as const,
+      category: "UTILITIES" as const,
+    };
+
+    await engine.analyze({ ...input, pages });
+    const firstChunkMessages = messages.filter((m) => m.includes("per-chunk"));
+    expect(firstChunkMessages.length).toBeGreaterThanOrEqual(3);
+
+    // Change ONLY page 1's text. Pages 2 and 3 are byte-for-byte identical.
+    const changed = pages.map((p) =>
+      p.pageNumber === 1 ? { ...p, text: `${p.text} CORRECTED-AMOUNT` } : p,
+    );
+
+    const before = messages.length;
+    await engine.analyze({ ...input, pages: changed });
+    const secondRunChunkMessages = messages
+      .slice(before)
+      .filter((m) => m.includes("per-chunk"));
+
+    // Exactly one chunk message: the changed page 1 chunk. Pages 2 and 3 came
+    // from the cache keyed on their unchanged contentHash.
+    expect(secondRunChunkMessages).toHaveLength(1);
+    expect(secondRunChunkMessages[0]).toContain("CORRECTED-AMOUNT");
+  });
+
+  it("module-changing category switch re-runs all chunks; same module hits the cache", async () => {
+    const { engine, messages } = makeEngine();
+    const pages = multiChunkPages();
+    const base = { documentId: "doc-1", corrections: [], language: "EN" as const };
+
+    await engine.analyze({ ...base, pages, category: "UTILITIES" });
+    const firstCount = messages.filter((m) => m.includes("per-chunk")).length;
+    expect(firstCount).toBeGreaterThanOrEqual(3);
+
+    // Same category -> same moduleIds -> every chunk hits the cache.
+    let before = messages.length;
+    await engine.analyze({ ...base, pages, category: "UTILITIES" });
+    expect(
+      messages.slice(before).filter((m) => m.includes("per-chunk")),
+    ).toHaveLength(0);
+
+    // Different category whose module set differs -> cache key changes -> every
+    // chunk re-runs.
+    before = messages.length;
+    await engine.analyze({ ...base, pages, category: "LEGAL" });
+    expect(
+      messages.slice(before).filter((m) => m.includes("per-chunk")).length,
+    ).toBe(firstCount);
+  });
 });

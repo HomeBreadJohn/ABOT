@@ -12,7 +12,13 @@
 export type EvidencePage = {
   pageNumber: number;
   text: string;
-  words: { index: number; text: string; confidence: number | null }[];
+  words: {
+    index: number;
+    text: string;
+    confidence: number | null;
+    /** Set by effective pages on reanalysis; absent words are OCR text. */
+    sourceType?: "OCR_TEXT" | "USER_CORRECTION";
+  }[];
 };
 
 export type EvidenceMatch = {
@@ -21,6 +27,8 @@ export type EvidenceMatch = {
   wordEnd: number;
   excerpt: string;
   matchConfidence: number;
+  /** USER_CORRECTION when any word in the matched span was corrected. */
+  sourceType: "OCR_TEXT" | "USER_CORRECTION";
 };
 
 // A single within-word OCR misread (m->rn) scores ~0.74 by char bigrams, so
@@ -61,6 +69,18 @@ function excerptOf(page: EvidencePage, wordStart: number, wordEnd: number): stri
     .join(" ");
 }
 
+/** USER_CORRECTION if any word in the span was user-corrected, else OCR_TEXT. */
+function sourceTypeOf(
+  page: EvidencePage,
+  wordStart: number,
+  wordEnd: number,
+): "OCR_TEXT" | "USER_CORRECTION" {
+  const corrected = page.words
+    .slice(wordStart, wordEnd + 1)
+    .some((w) => w.sourceType === "USER_CORRECTION");
+  return corrected ? "USER_CORRECTION" : "OCR_TEXT";
+}
+
 /**
  * Exact normalized substring match on one page. Builds the page's normalized
  * text from its words so the matched character span maps straight back to the
@@ -94,6 +114,7 @@ function exactMatch(page: EvidencePage, normalizedQuote: string): EvidenceMatch 
     wordEnd,
     excerpt: excerptOf(page, wordStart, wordEnd),
     matchConfidence: 1,
+    sourceType: sourceTypeOf(page, wordStart, wordEnd),
   };
 }
 
@@ -129,6 +150,7 @@ function fuzzyMatch(page: EvidencePage, normalizedQuote: string): EvidenceMatch 
           wordEnd,
           excerpt: excerptOf(page, wordStart, wordEnd),
           matchConfidence: score,
+          sourceType: sourceTypeOf(page, wordStart, wordEnd),
         };
       }
     }
