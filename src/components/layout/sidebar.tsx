@@ -1,15 +1,22 @@
-import { FileText, LayoutDashboard, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import Link from "next/link";
 
 import { AccountMenu } from "@/components/layout/account-menu";
 import { RecentDocumentsNav, type RecentDocumentNavItem } from "@/components/layout/recent-documents-nav";
-import { SidebarNavLink } from "@/components/layout/sidebar-nav-link";
+import {
+  SidebarNavLink,
+  type SidebarNavIcon,
+} from "@/components/layout/sidebar-nav-link";
 import { brand } from "@/config/brand";
 
-const navigation = [
-  { href: "/dashboard", label: "Home", icon: LayoutDashboard },
-  { href: "/documents", label: "Documents", icon: FileText },
-] as const;
+const navigation: ReadonlyArray<{
+  href: string;
+  label: string;
+  icon: SidebarNavIcon;
+}> = [
+  { href: "/dashboard", label: "Home", icon: "home" },
+  { href: "/documents", label: "Documents", icon: "documents" },
+];
 
 export function Sidebar({
   recentDocuments,

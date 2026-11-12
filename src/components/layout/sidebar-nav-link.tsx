@@ -1,13 +1,23 @@
 "use client";
 
-import type { LucideIcon } from "lucide-react";
+import { FileText, LayoutDashboard, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+
+// Icons are resolved on the client side of the boundary: a Server Component
+// cannot pass a Lucide component (a forwardRef object with a render method)
+// as a prop, so the sidebar passes a serializable key instead.
+export type SidebarNavIcon = "home" | "documents";
+
+const NAV_ICONS: Record<SidebarNavIcon, LucideIcon> = {
+  home: LayoutDashboard,
+  documents: FileText,
+};
 
 interface SidebarNavLinkProps {
   href: string;
   label: string;
-  icon: LucideIcon;
+  icon: SidebarNavIcon;
 }
 
 function isCurrentPath(pathname: string | null, href: string) {
@@ -18,9 +28,10 @@ function isCurrentPath(pathname: string | null, href: string) {
   return pathname === href || (href !== "/dashboard" && pathname.startsWith(`${href}/`));
 }
 
-export function SidebarNavLink({ href, label, icon: Icon }: SidebarNavLinkProps) {
+export function SidebarNavLink({ href, label, icon }: SidebarNavLinkProps) {
   const pathname = usePathname();
   const current = isCurrentPath(pathname, href);
+  const Icon = NAV_ICONS[icon];
 
   return (
     <Link
