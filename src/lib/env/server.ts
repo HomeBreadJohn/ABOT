@@ -6,23 +6,59 @@ import { getPublicEnv } from "@/lib/env/public";
 
 const serverOnlyEnvSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
-  LUMEN_API_KEY: z.string().min(1).optional(),
-  LUMEN_API_BASE_URL: z.string().url().optional(),
-  LUMEN_MODEL: z.string().min(1).optional(),
 });
 
-const lumenEnvSchema = z.object({
-  LUMEN_API_KEY: z.string().min(1).optional(),
-  LUMEN_API_BASE_URL: z.string().url().optional(),
-  LUMEN_MODEL: z.string().min(1).optional(),
-});
+export type ProviderEnv =
+  | { mode: "mock" }
+  | {
+      mode: "lumen";
+      apiKey: string;
+      apiSecret: string;
+      ocrBaseUrl: string;
+      aiChatBaseUrl: string;
+      aiInstanceId?: string;
+    };
 
-export function getLumenEnv() {
-  return lumenEnvSchema.parse({
-    LUMEN_API_KEY: process.env.LUMEN_API_KEY,
-    LUMEN_API_BASE_URL: process.env.LUMEN_API_BASE_URL,
-    LUMEN_MODEL: process.env.LUMEN_MODEL,
-  });
+/** Reads a required env var; errors name the variable, never its value. */
+function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) throw new Error(`Missing required environment variable ${name}.`);
+  return value;
+}
+
+function requireHttpsEnv(name: string): string {
+  const value = requireEnv(name);
+  if (!value.startsWith("https://")) {
+    throw new Error(`${name} must be an https URL.`);
+  }
+  return value;
+}
+
+/**
+ * Provider selection for the document pipeline. In mock mode no credentials
+ * are needed; in lumen mode every credential and endpoint is required.
+ */
+export function getProviderEnv(): ProviderEnv {
+  const mode = process.env.PROVIDER_MODE ?? "mock";
+  if (mode === "mock") return { mode: "mock" };
+  if (mode !== "lumen") {
+    throw new Error('PROVIDER_MODE must be "mock" or "lumen".');
+  }
+
+  const aiInstanceId = process.env.LUMEN_AI_INSTANCE_ID || undefined;
+  return {
+    mode: "lumen",
+    apiKey: requireEnv("LUMEN_API_KEY"),
+    apiSecret: requireEnv("LUMEN_API_SECRET"),
+    ocrBaseUrl: requireHttpsEnv("LUMEN_OCR_BASE_URL"),
+    aiChatBaseUrl: requireHttpsEnv("LUMEN_AI_CHAT_BASE_URL"),
+    aiInstanceId,
+  };
+}
+
+/** Secret the background job tick route compares against. */
+export function getJobRunnerSecret(): string {
+  return requireEnv("JOB_RUNNER_SECRET");
 }
 
 export function getServerEnv() {
@@ -30,9 +66,6 @@ export function getServerEnv() {
     ...getPublicEnv(),
     ...serverOnlyEnvSchema.parse({
       SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
-      LUMEN_API_KEY: process.env.LUMEN_API_KEY,
-      LUMEN_API_BASE_URL: process.env.LUMEN_API_BASE_URL,
-      LUMEN_MODEL: process.env.LUMEN_MODEL,
     }),
   };
 }

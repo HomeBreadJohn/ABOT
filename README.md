@@ -11,7 +11,7 @@ A modular Next.js foundation for a secure, document-centric AI workspace. The di
 - Lucide React for icons
 - Vercel-compatible server routes
 
-The Lumen provider is intentionally a non-functional placeholder. No API endpoint, model name, SDK method, request shape, or response shape has been inferred. The provider will only be implemented after its official API documentation is supplied.
+The Lumen OCR and AI Chat integrations are not implemented yet. They are selected by `PROVIDER_MODE` (default `mock`) and will only be implemented from their official API documentation.
 
 ## Requirements
 
@@ -28,7 +28,7 @@ The Lumen provider is intentionally a non-functional placeholder. No API endpoin
    npm install
    ```
 
-2. Copy `.env.example` to `.env.local` and fill in the Supabase values. Keep the service-role key server-only. Leave the Lumen variables blank until the official API contract is available.
+2. Copy `.env.example` to `.env.local` and fill in the Supabase values. Keep the service-role key server-only. `PROVIDER_MODE` defaults to `mock`; leave the Lumen variables blank until the official API contract is available.
 
 3. Apply the database migration to a local Supabase instance:
 
@@ -54,9 +54,13 @@ The Lumen provider is intentionally a non-functional placeholder. No API endpoin
 | `NEXT_PUBLIC_SUPABASE_URL`      | Browser and server | Supabase project URL                                                                      |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Browser and server | Supabase public anonymous key                                                             |
 | `SUPABASE_SERVICE_ROLE_KEY`     | Server only        | Creates authorized short-lived signed URLs after an explicit database authorization check |
-| `LUMEN_API_KEY`                 | Server only        | Reserved for the official Lumen API integration                                           |
-| `LUMEN_API_BASE_URL`            | Server only        | Reserved for the official Lumen API base URL                                              |
-| `LUMEN_MODEL`                   | Server only        | Reserved for the official Lumen model identifier                                          |
+| `PROVIDER_MODE`                 | Server only        | `mock` (default) or `lumen`; selects the OCR and AI Chat provider                         |
+| `LUMEN_API_KEY`                 | Server only        | Lumen API key, required when `PROVIDER_MODE=lumen`                                        |
+| `LUMEN_API_SECRET`              | Server only        | Lumen API secret, required when `PROVIDER_MODE=lumen`                                     |
+| `LUMEN_OCR_BASE_URL`            | Server only        | Lumen OCR base URL (https), required when `PROVIDER_MODE=lumen`                           |
+| `LUMEN_AI_CHAT_BASE_URL`        | Server only        | Lumen AI Chat base URL (https), required when `PROVIDER_MODE=lumen`                       |
+| `LUMEN_AI_INSTANCE_ID`          | Server only        | Optional Lumen AI Chat instance identifier                                                |
+| `JOB_RUNNER_SECRET`             | Server only        | Secret the background job tick route compares against                                     |
 
 Environment values are validated with Zod when their runtime client or service is created. Never add real credentials to committed files.
 
@@ -109,4 +113,4 @@ Future background work can be attached to `processing_jobs` through Inngest or S
 - Set the server-only service-role key in the Vercel project environment, never in browser-exposed variables.
 - Apply the migration and confirm the `documents` bucket remains private.
 - Configure Supabase Auth email settings and redirect URLs for the deployed app.
-- Provide the official Lumen API documentation and credentials before implementing `src/lib/ai/providers/lumen-provider.ts`.
+- Provide the official Lumen API documentation and staging credentials before enabling `PROVIDER_MODE=lumen`.
