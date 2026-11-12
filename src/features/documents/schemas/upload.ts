@@ -1,16 +1,11 @@
 import { z } from "zod";
+import { allowedMimeTypeSchema, MAX_DOCUMENT_SIZE_BYTES } from "@/contracts";
 
-export const MAX_DOCUMENT_SIZE_BYTES = 10 * 1024 * 1024;
-export const ALLOWED_DOCUMENT_MIME_TYPES = [
-  "application/pdf",
-  "image/jpeg",
-  "image/png",
-  "text/plain",
-] as const;
+export { allowedMimeTypeSchema, MAX_DOCUMENT_SIZE_BYTES };
 
 export const uploadMetadataSchema = z.object({
   originalFilename: z.string().trim().min(1).max(255),
-  mimeType: z.enum(ALLOWED_DOCUMENT_MIME_TYPES),
+  mimeType: allowedMimeTypeSchema,
   fileSize: z.number().int().positive().max(MAX_DOCUMENT_SIZE_BYTES),
 });
 
