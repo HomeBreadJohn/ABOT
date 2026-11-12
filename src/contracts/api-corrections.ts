@@ -21,7 +21,7 @@ export const submitCorrectionsRequestSchema = z.strictObject({
         pageNumber: z.number().int().positive(),
         wordStart: z.number().int().nonnegative(),
         wordEnd: z.number().int().nonnegative(),
-        correctedValue: z.string().min(1).optional(),
+        correctedValue: z.string().min(1).max(2000).optional(),
       }),
     )
     .min(1),

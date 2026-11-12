@@ -9,6 +9,7 @@ import {
   type ApiIssue,
 } from "@/contracts";
 import { AppError } from "@/lib/http/app-error";
+import { logger } from "@/lib/logging/logger";
 
 /** 200 response with the route's contract body. */
 export function apiOk<T>(data: T, init?: ResponseInit): Response {
@@ -20,12 +21,13 @@ export function apiFail(
   code: ApiErrorCode,
   message: string,
   issues?: ApiIssue[],
+  requestId = randomUUID(),
 ): Response {
   const body = apiErrorSchema.parse({
     error: {
       code,
       message,
-      requestId: randomUUID(),
+      requestId,
       ...(issues ? { issues } : {}),
     },
   });
@@ -54,7 +56,18 @@ export function withApiErrors<Args extends unknown[]>(
         }));
         return apiFail("INVALID_REQUEST", "Request validation failed.", issues);
       }
-      return apiFail("INTERNAL_ERROR", "An unexpected error occurred.");
+      // Generated before the response so the logged id matches the client's.
+      const requestId = randomUUID();
+      logger.error("unhandled route error", {
+        errorCode: "INTERNAL_ERROR",
+        requestId,
+      });
+      return apiFail(
+        "INTERNAL_ERROR",
+        "An unexpected error occurred.",
+        undefined,
+        requestId,
+      );
     }
   };
 }

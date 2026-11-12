@@ -150,6 +150,22 @@ describe("sendMessageRequestSchema", () => {
   });
 });
 
+describe("submitCorrectionsRequestSchema", () => {
+  it("accepts a correctedValue of exactly 2,000 characters and rejects 2,001", () => {
+    const item = { pageNumber: 1, wordStart: 0, wordEnd: 3 };
+    expect(
+      submitCorrectionsRequestSchema.safeParse({
+        items: [{ ...item, correctedValue: "a".repeat(2000) }],
+      }).success,
+    ).toBe(true);
+    expect(
+      submitCorrectionsRequestSchema.safeParse({
+        items: [{ ...item, correctedValue: "a".repeat(2001) }],
+      }).success,
+    ).toBe(false);
+  });
+});
+
 describe("apiErrorSchema", () => {
   it("accepts the shared error shape", () => {
     expect(

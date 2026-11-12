@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
 import { apiErrorSchema } from "@/contracts";
@@ -60,5 +60,33 @@ describe("withApiErrors", () => {
     const text = JSON.stringify(body);
     expect(text).not.toContain("s3cret");
     expect(text).not.toContain("10.0.0.4");
+  });
+
+  it("logs exactly one allowlisted entry for an unknown error, sharing the client's requestId, with no original text", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      const handler = withApiErrors(() => {
+        throw new Error("db password is s3cret at 10.0.0.4");
+      });
+
+      const response = await handler();
+      const body = await response.json();
+
+      expect(errorSpy).toHaveBeenCalledTimes(1);
+      const [message, fields] = errorSpy.mock.calls[0] as [
+        string,
+        Record<string, unknown>,
+      ];
+      expect(message).toBe("unhandled route error");
+      expect(Object.keys(fields).sort()).toEqual([
+        "errorCode",
+        "requestId",
+      ]);
+      expect(fields.errorCode).toBe("INTERNAL_ERROR");
+      expect(fields.requestId).toBe(body.error.requestId);
+      expect(JSON.stringify([message, fields])).not.toContain("s3cret");
+    } finally {
+      errorSpy.mockRestore();
+    }
   });
 });

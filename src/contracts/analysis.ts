@@ -164,6 +164,19 @@ export function parseAnalysisResult(
     }
   }
 
+  for (const [sectionIndex, section] of result.specializedSections.entries()) {
+    for (const [itemIndex, item] of section.items.entries()) {
+      for (const evidenceId of item.evidenceIds) {
+        if (!evidenceIds.has(evidenceId)) {
+          throw new ContractError(
+            `specializedSections[${sectionIndex}].items[${itemIndex}].evidenceIds`,
+            `finding "${item.id}" references missing evidence "${evidenceId}"`,
+          );
+        }
+      }
+    }
+  }
+
   for (const [index, watchout] of result.watchouts.entries()) {
     if (watchout.severity === "CRITICAL" && watchout.evidenceIds.length === 0) {
       throw new ContractError(

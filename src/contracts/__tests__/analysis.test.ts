@@ -179,6 +179,23 @@ describe("parseAnalysisResult", () => {
       ContractError,
     );
   });
+
+  it("rejects a specialized-section item citing missing evidence", () => {
+    const value = build((v) => {
+      const sections = v.specializedSections as Record<string, unknown>[];
+      const items = sections[0].items as Record<string, unknown>[];
+      items[0].evidenceIds = ["e-missing"];
+    });
+    try {
+      parseAnalysisResult(value, { documentId: DOC_ID });
+      expect.unreachable("expected ContractError");
+    } catch (error) {
+      expect(error).toBeInstanceOf(ContractError);
+      expect((error as ContractError).path).toBe(
+        "specializedSections[0].items[0].evidenceIds",
+      );
+    }
+  });
 });
 
 describe("fixtures", () => {
