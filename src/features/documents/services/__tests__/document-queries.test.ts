@@ -187,6 +187,35 @@ describe("getAnalysis", () => {
     expect(result.state).toBe("READY");
   });
 
+  it("includes reminderSuggestions on a READY response", async () => {
+    // The fixture has an importantDate of 2026-12-15; a fixed `now` before it
+    // keeps this deterministic rather than depending on the real calendar.
+    const deps: DocumentQueryDeps = {
+      now: () => new Date("2026-06-01T00:00:00.000Z"),
+      getRow: vi.fn(async () => docRow({ processing_status: "COMPLETED" })),
+      latestAnalysisRow: vi.fn(async () => ({
+        id: ANALYSIS_ID,
+        status: "SUCCEEDED",
+        version: 1,
+        report_json: report(),
+      })),
+      oldestQueuedJobAge: vi.fn(async () => null),
+      kick: vi.fn(),
+    };
+
+    const result = await getAnalysis(USER_ID, DOC_ID, undefined, deps);
+    expect(result.state).toBe("READY");
+    if (result.state === "READY") {
+      expect(result.reminderSuggestions).toEqual([
+        expect.objectContaining({
+          importantDateId: "d-due",
+          title: "Payment due date",
+          needsConfirmation: false,
+        }),
+      ]);
+    }
+  });
+
   it("never returns a RUNNING analysis row as READY", async () => {
     const deps: DocumentQueryDeps = {
       now: () => new Date(),

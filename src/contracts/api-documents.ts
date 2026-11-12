@@ -15,6 +15,22 @@ import {
 import { apiErrorCodeSchema } from "@/contracts/api-error";
 import { analysisResultSchema } from "@/contracts/analysis";
 
+/**
+ * A reminder suggestion derived from an analysis's important dates (plan Task
+ * B23). Additive to the READY response only; nothing bumps
+ * ANALYSIS_SCHEMA_VERSION because this lives on the API envelope, not on
+ * AnalysisResult. The suggestReminders service in
+ * src/features/intelligence produces these.
+ */
+export const reminderSuggestionSchema = z.object({
+  importantDateId: z.string().min(1),
+  title: z.string().min(1),
+  date: z.string(), // ISO 8601
+  remindAt: z.string(), // ISO 8601
+  needsConfirmation: z.boolean(),
+});
+export type ReminderSuggestion = z.infer<typeof reminderSuggestionSchema>;
+
 /* POST /api/documents */
 export const createDocumentRequestSchema = z.strictObject({
   originalFilename: z.string().trim().min(1).max(255),
@@ -115,6 +131,9 @@ export const analysisResponseSchema = z.discriminatedUnion("state", [
     // True when a non-source language was requested and its translation is not
     // ready yet: the original (source-language) analysis is returned meanwhile.
     translationPending: z.boolean().optional(),
+    // Reminder suggestions derived from the analysis's important dates (B23).
+    // Optional and additive: Person 1's reminder CRUD consumes these.
+    reminderSuggestions: z.array(reminderSuggestionSchema).optional(),
   }),
   z.strictObject({
     state: z.literal("PROCESSING"),

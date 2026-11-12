@@ -23,6 +23,7 @@ import {
   kickJobRunner,
 } from "@/features/processing/services/job-runner";
 import { getAnalysisInLanguage } from "@/features/intelligence/services/translate-explanations";
+import { suggestReminders } from "@/features/intelligence/services/reminder-suggestions";
 
 const STALE_JOB_MS = 2 * 60_000;
 const ATTENTION_WINDOW_MS = 7 * 24 * 60 * 60_000;
@@ -324,6 +325,8 @@ export async function getAnalysis(
   if (latest && latest.status === "SUCCEEDED") {
     const analysis = parseAnalysisResult(latest.report_json, { documentId });
     const version = latest.version ?? analysis.analysisMetadata.analysisVersion;
+    // Dates don't translate, so suggestions derive from the original analysis.
+    const reminderSuggestions = suggestReminders(analysis, new Date());
 
     // A non-source language serves the cached translation when it exists; when
     // it does not, the original is returned with translationPending and a
@@ -340,6 +343,7 @@ export async function getAnalysis(
           analysisId: latest.id,
           version,
           analysis: cached,
+          reminderSuggestions,
         });
       }
       await (deps.enqueueTranslate ?? enqueueTranslate)(
@@ -354,6 +358,7 @@ export async function getAnalysis(
         version,
         analysis,
         translationPending: true,
+        reminderSuggestions,
       });
     }
 
@@ -362,6 +367,7 @@ export async function getAnalysis(
       analysisId: latest.id,
       version,
       analysis,
+      reminderSuggestions,
     });
   }
 
