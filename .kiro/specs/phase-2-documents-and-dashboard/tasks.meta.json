@@ -1,0 +1,243 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1.1 Implement the semantic visual tokens and typography foundation": [
+      {
+        "executionId": "5c9884d7-276d-4b10-8659-bd56af4dd426",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794505118926
+      },
+      {
+        "executionId": "5c9884d7-276d-4b10-8659-bd56af4dd426",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794505134656
+      },
+      {
+        "executionId": "681f8d79-ad84-4a57-8b02-017079e8d834",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794505781802
+      }
+    ],
+    "1.3 Refresh shared UI primitives without changing their public contracts": [
+      {
+        "executionId": "5c9884d7-276d-4b10-8659-bd56af4dd426",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794505119025
+      }
+    ],
+    "1.4 Build the responsive shell and navigation frame": [
+      {
+        "executionId": "5c9884d7-276d-4b10-8659-bd56af4dd426",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794505119247
+      }
+    ],
+    "1.5 Add shell loading, error, identity, and mock-mode presentation": [
+      {
+        "executionId": "5c9884d7-276d-4b10-8659-bd56af4dd426",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794505119334
+      }
+    ],
+    "2.1 Create the shared upload policy and action input schemas": [
+      {
+        "executionId": "5c9884d7-276d-4b10-8659-bd56af4dd426",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794505119421
+      },
+      {
+        "executionId": "5c9884d7-276d-4b10-8659-bd56af4dd426",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794505135033
+      },
+      {
+        "executionId": "681f8d79-ad84-4a57-8b02-017079e8d834",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794505605839
+      },
+      {
+        "executionId": "681f8d79-ad84-4a57-8b02-017079e8d834",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794505777151
+      }
+    ],
+    "2.2 Implement pure filename, MIME, magic-byte, and storage-path helpers": [
+      {
+        "executionId": "5c9884d7-276d-4b10-8659-bd56af4dd426",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794505119502
+      }
+    ],
+    "2.3 Implement the upload queue state machine": [
+      {
+        "executionId": "5c9884d7-276d-4b10-8659-bd56af4dd426",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794505119582
+      }
+    ],
+    "3.1 Add documents environment resolution and the server-only service factory": [
+      {
+        "executionId": "5c9884d7-276d-4b10-8659-bd56af4dd426",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794505119675
+      },
+      {
+        "executionId": "5c9884d7-276d-4b10-8659-bd56af4dd426",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794505135643
+      },
+      {
+        "executionId": "681f8d79-ad84-4a57-8b02-017079e8d834",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794505782289
+      }
+    ],
+    "3.3 Implement pure Supabase row mapping for both schema profiles": [
+      {
+        "executionId": "5c9884d7-276d-4b10-8659-bd56af4dd426",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794505119763
+      }
+    ],
+    "3.5 Implement the server-only mock documents service": [
+      {
+        "executionId": "5c9884d7-276d-4b10-8659-bd56af4dd426",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794505119858
+      }
+    ],
+    "3.6 Implement the Supabase service boundary without processing": [
+      {
+        "executionId": "5c9884d7-276d-4b10-8659-bd56af4dd426",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794505119979
+      }
+    ],
+    "3.8 Implement upload Server Actions and safe action results": [
+      {
+        "executionId": "5c9884d7-276d-4b10-8659-bd56af4dd426",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794505120123
+      }
+    ],
+    "4.1 Implement total document and analysis presentation models": [
+      {
+        "executionId": "5c9884d7-276d-4b10-8659-bd56af4dd426",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794505120214
+      }
+    ],
+    "4.2 Implement Manila date and deadline helpers": [
+      {
+        "executionId": "5c9884d7-276d-4b10-8659-bd56af4dd426",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794505120312
+      }
+    ],
+    "4.3 Implement attention classification and vault filtering/query models": [
+      {
+        "executionId": "5c9884d7-276d-4b10-8659-bd56af4dd426",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794505120426
+      }
+    ],
+    "5.1 Implement direct upload transport and drop-zone helpers": [
+      {
+        "executionId": "5c9884d7-276d-4b10-8659-bd56af4dd426",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794505120528
+      }
+    ],
+    "5.2 Implement queued-file chips and per-file state presentation": [
+      {
+        "executionId": "5c9884d7-276d-4b10-8659-bd56af4dd426",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794505120620
+      }
+    ],
+    "5.3 Implement the accessible upload composer and input variants": [
+      {
+        "executionId": "5c9884d7-276d-4b10-8659-bd56af4dd426",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794505120700
+      }
+    ],
+    "5.4 Wire mock-default upload into dashboard and focused upload routes": [
+      {
+        "executionId": "5c9884d7-276d-4b10-8659-bd56af4dd426",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794505120779
+      }
+    ],
+    "6.1 Implement vault rows, lists, toolbar, and empty-state variants": [
+      {
+        "executionId": "5c9884d7-276d-4b10-8659-bd56af4dd426",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794505120870
+      }
+    ],
+    "6.2 Implement the server-rendered vault content and route": [
+      {
+        "executionId": "5c9884d7-276d-4b10-8659-bd56af4dd426",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794505120964
+      }
+    ],
+    "7.1 Implement the cached dashboard snapshot and greeting data flow": [
+      {
+        "executionId": "5c9884d7-276d-4b10-8659-bd56af4dd426",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794505121047
+      }
+    ],
+    "7.2 Implement attention and deadline/reminder sections": [
+      {
+        "executionId": "5c9884d7-276d-4b10-8659-bd56af4dd426",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794505121147
+      }
+    ],
+    "7.3 Implement recent/all sections, first-run state, and dashboard composition": [
+      {
+        "executionId": "5c9884d7-276d-4b10-8659-bd56af4dd426",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794505121276
+      }
+    ],
+    "8.1 Implement the server-only detail route and placeholder view": [
+      {
+        "executionId": "5c9884d7-276d-4b10-8659-bd56af4dd426",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794505121449
+      }
+    ],
+    "9.1 Add cross-route integration tests for mock-first platform behavior": [
+      {
+        "executionId": "5c9884d7-276d-4b10-8659-bd56af4dd426",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794505121525
+      }
+    ],
+    "9.2 Add responsive/accessibility regression coverage": [
+      {
+        "executionId": "5c9884d7-276d-4b10-8659-bd56af4dd426",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794505121607
+      }
+    ],
+    "9.3 Run the complete Phase 2 verification suite and preserve excluded boundaries": [
+      {
+        "executionId": "5c9884d7-276d-4b10-8659-bd56af4dd426",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794505121693
+      }
+    ],
+    "10. Checkpoint - Ensure all tests pass, ask the user if questions arise.": [
+      {
+        "executionId": "5c9884d7-276d-4b10-8659-bd56af4dd426",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794505121783
+      }
+    ]
+  }
+}
