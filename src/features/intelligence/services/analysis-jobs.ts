@@ -31,6 +31,7 @@ import { FixtureAnalysisEngine } from "@/features/intelligence/services/fixture-
 import { RealAnalysisEngine } from "@/features/intelligence/services/real-analysis-engine";
 import { getChatProvider } from "@/lib/providers";
 import { getProviderEnv } from "@/lib/env/server";
+import { registerTranslateHandler } from "@/features/intelligence/services/translate-explanations";
 
 type AnalysisOutcome = "COMPLETED" | "REVIEW_REQUIRED" | "NEEDS_CORRECTION";
 
@@ -491,4 +492,5 @@ export function registerAnalysisHandlers(): void {
     "REANALYZE",
     makeReanalyzeHandler(defaultReanalyzeDeps(admin, engine)),
   );
+  registerTranslateHandler();
 }

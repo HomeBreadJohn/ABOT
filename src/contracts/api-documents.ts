@@ -112,6 +112,9 @@ export const analysisResponseSchema = z.discriminatedUnion("state", [
     analysisId: z.uuid(),
     version: z.number().int().positive(),
     analysis: analysisResultSchema,
+    // True when a non-source language was requested and its translation is not
+    // ready yet: the original (source-language) analysis is returned meanwhile.
+    translationPending: z.boolean().optional(),
   }),
   z.strictObject({
     state: z.literal("PROCESSING"),

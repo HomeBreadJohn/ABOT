@@ -22,6 +22,7 @@ import {
   enqueueJob,
   kickJobRunner,
 } from "@/features/processing/services/job-runner";
+import { getAnalysisInLanguage } from "@/features/intelligence/services/translate-explanations";
 
 const STALE_JOB_MS = 2 * 60_000;
 const ATTENTION_WINDOW_MS = 7 * 24 * 60 * 60_000;
@@ -105,8 +106,23 @@ export type DocumentQueryDeps = {
     documentId: string,
     pageNumber: number,
   ) => Promise<PageRow | null>;
+  /** Cached translation for (analysisId, language), or null when not ready. */
+  loadTranslation?: (
+    analysisId: string,
+    language: ExplanationLanguage,
+  ) => Promise<AnalysisResultLike | null>;
+  /** Enqueue a TRANSLATE job for a non-source language that is not cached. */
+  enqueueTranslate?: (
+    userId: string,
+    documentId: string,
+    analysisId: string,
+    language: ExplanationLanguage,
+  ) => Promise<void>;
   kick?: (origin: string) => void;
 };
+
+/** The parsed analysis shape without importing the whole contract type here. */
+type AnalysisResultLike = ReturnType<typeof parseAnalysisResult>;
 
 /**
  * Vault list for the current user. Needs-attention documents come first, then
@@ -295,7 +311,6 @@ export async function getAnalysis(
   deps: DocumentQueryDeps = defaultDeps(),
   origin?: string,
 ) {
-  void language; // Translations arrive in a later task; the default is EN.
   const row = await (deps.getRow ?? getRow)(userId, documentId);
   if (!row) throw new AppError("NOT_FOUND");
 
@@ -308,10 +323,44 @@ export async function getAnalysis(
   // READY only from a SUCCEEDED row with a valid report.
   if (latest && latest.status === "SUCCEEDED") {
     const analysis = parseAnalysisResult(latest.report_json, { documentId });
+    const version = latest.version ?? analysis.analysisMetadata.analysisVersion;
+
+    // A non-source language serves the cached translation when it exists; when
+    // it does not, the original is returned with translationPending and a
+    // TRANSLATE job is enqueued. EN is the source and never translates. No OCR
+    // or full re-analysis is ever triggered here.
+    if (language && language !== "EN") {
+      const cached = await (deps.loadTranslation ?? loadTranslation)(
+        latest.id,
+        language,
+      );
+      if (cached) {
+        return analysisResponseSchema.parse({
+          state: "READY",
+          analysisId: latest.id,
+          version,
+          analysis: cached,
+        });
+      }
+      await (deps.enqueueTranslate ?? enqueueTranslate)(
+        userId,
+        documentId,
+        latest.id,
+        language,
+      );
+      return analysisResponseSchema.parse({
+        state: "READY",
+        analysisId: latest.id,
+        version,
+        analysis,
+        translationPending: true,
+      });
+    }
+
     return analysisResponseSchema.parse({
       state: "READY",
       analysisId: latest.id,
-      version: latest.version ?? analysis.analysisMetadata.analysisVersion,
+      version,
       analysis,
     });
   }
@@ -527,6 +576,28 @@ async function getPageRow(
     .eq("page_number", pageNumber)
     .maybeSingle();
   return (data as PageRow | null) ?? null;
+}
+
+async function loadTranslation(
+  analysisId: string,
+  language: ExplanationLanguage,
+): Promise<AnalysisResultLike | null> {
+  return getAnalysisInLanguage(analysisId, language);
+}
+
+async function enqueueTranslate(
+  userId: string,
+  documentId: string,
+  analysisId: string,
+  language: ExplanationLanguage,
+): Promise<void> {
+  await enqueueJob({
+    documentId,
+    userId,
+    type: "TRANSLATE",
+    idempotencyKey: `translate:${analysisId}:${language}`,
+    payload: { analysisId, language },
+  });
 }
 
 /** All queries hit the user-scoped client, so RLS is the ownership boundary. */

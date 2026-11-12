@@ -269,6 +269,89 @@ describe("getAnalysis", () => {
     expect(err).toBeInstanceOf(AppError);
     expect(err.code).toBe("NOT_FOUND");
   });
+
+  it("returns the original immediately with translationPending and enqueues TRANSLATE for an uncached non-source language", async () => {
+    const enqueueTranslate = vi.fn(async () => {});
+    const deps: DocumentQueryDeps = {
+      now: () => new Date(),
+      getRow: vi.fn(async () => docRow({ processing_status: "COMPLETED" })),
+      latestAnalysisRow: vi.fn(async () => ({
+        id: ANALYSIS_ID,
+        status: "SUCCEEDED",
+        version: 1,
+        report_json: report(),
+      })),
+      loadTranslation: vi.fn(async () => null),
+      enqueueTranslate,
+      oldestQueuedJobAge: vi.fn(async () => null),
+      kick: vi.fn(),
+    };
+
+    const result = await getAnalysis(USER_ID, DOC_ID, "FIL", deps);
+    expect(result.state).toBe("READY");
+    if (result.state === "READY") {
+      expect(result.translationPending).toBe(true);
+      // Original (untranslated) report is returned unchanged.
+      expect(result.analysis.overview).toBe(report().overview);
+    }
+    expect(enqueueTranslate).toHaveBeenCalledWith(USER_ID, DOC_ID, ANALYSIS_ID, "FIL");
+    // No OCR or re-analysis job is enqueued — only TRANSLATE.
+    expect(analysisResponseSchema.parse(result)).toEqual(result);
+  });
+
+  it("returns the cached translation as READY without enqueuing", async () => {
+    const translated = {
+      ...report(),
+      overview: "ISANG NAKASALIN NA OVERVIEW",
+    };
+    const enqueueTranslate = vi.fn(async () => {});
+    const deps: DocumentQueryDeps = {
+      now: () => new Date(),
+      getRow: vi.fn(async () => docRow({ processing_status: "COMPLETED" })),
+      latestAnalysisRow: vi.fn(async () => ({
+        id: ANALYSIS_ID,
+        status: "SUCCEEDED",
+        version: 1,
+        report_json: report(),
+      })),
+      loadTranslation: vi.fn(async () => translated),
+      enqueueTranslate,
+      oldestQueuedJobAge: vi.fn(async () => null),
+      kick: vi.fn(),
+    };
+
+    const result = await getAnalysis(USER_ID, DOC_ID, "FIL", deps);
+    expect(result.state).toBe("READY");
+    if (result.state === "READY") {
+      expect(result.analysis.overview).toBe("ISANG NAKASALIN NA OVERVIEW");
+      expect(result.translationPending).toBeUndefined();
+    }
+    expect(enqueueTranslate).not.toHaveBeenCalled();
+  });
+
+  it("never enqueues a translation for EN (the source language)", async () => {
+    const enqueueTranslate = vi.fn(async () => {});
+    const deps: DocumentQueryDeps = {
+      now: () => new Date(),
+      getRow: vi.fn(async () => docRow({ processing_status: "COMPLETED" })),
+      latestAnalysisRow: vi.fn(async () => ({
+        id: ANALYSIS_ID,
+        status: "SUCCEEDED",
+        version: 1,
+        report_json: report(),
+      })),
+      loadTranslation: vi.fn(async () => null),
+      enqueueTranslate,
+      oldestQueuedJobAge: vi.fn(async () => null),
+      kick: vi.fn(),
+    };
+
+    const result = await getAnalysis(USER_ID, DOC_ID, "EN", deps);
+    expect(result.state).toBe("READY");
+    if (result.state === "READY")
+      expect(result.translationPending).toBeUndefined();
+    expect(enqueueTranslate).not.toHaveBeenCalled();
+  });
 });
 
 describe("getAnalysisById", () => {
