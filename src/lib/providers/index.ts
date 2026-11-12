@@ -3,6 +3,7 @@ import type { ChatProvider } from "@/lib/providers/chat-provider";
 import type { OcrProvider } from "@/lib/providers/ocr-provider";
 import { MockChatProvider } from "@/lib/providers/mock/mock-chat-provider";
 import { MockOcrProvider } from "@/lib/providers/mock/mock-ocr-provider";
+import { LumenOcrProvider } from "@/lib/lumen/ocr-client";
 
 export type { OcrProvider, NormalizedPage } from "@/lib/providers/ocr-provider";
 export type { ChatProvider } from "@/lib/providers/chat-provider";
@@ -14,7 +15,7 @@ const LUMEN_NOT_IMPLEMENTED =
 
 export function getOcrProvider(): OcrProvider {
   if (getProviderEnv().mode === "mock") return new MockOcrProvider();
-  throw new Error(LUMEN_NOT_IMPLEMENTED);
+  return new LumenOcrProvider();
 }
 
 export function getChatProvider(): ChatProvider {

@@ -4,6 +4,7 @@ import { getOcrProvider, getChatProvider } from "@/lib/providers";
 import type { OcrProvider } from "@/lib/providers/ocr-provider";
 import { MockOcrProvider } from "@/lib/providers/mock/mock-ocr-provider";
 import { MockChatProvider } from "@/lib/providers/mock/mock-chat-provider";
+import { LumenOcrProvider } from "@/lib/lumen/ocr-client";
 import {
   utilityBillPages,
   partialUtilityBillPages,
@@ -127,13 +128,14 @@ describe("provider selection", () => {
     expect(getChatProvider()).toBeInstanceOf(MockChatProvider);
   });
 
-  it("throws a not-implemented error for lumen mode", () => {
+  it("returns the Lumen OCR provider in lumen mode; chat is still not implemented", () => {
     process.env.PROVIDER_MODE = "lumen";
     process.env.LUMEN_API_KEY = "k";
     process.env.LUMEN_API_SECRET = "s";
     process.env.LUMEN_OCR_BASE_URL = "https://example.test/ocr";
     process.env.LUMEN_AI_CHAT_BASE_URL = "https://example.test/ai_chat";
-    expect(() => getOcrProvider()).toThrow(/not implemented/i);
+    // B9 wires lumen OCR; B12 still handles the chat provider.
+    expect(getOcrProvider()).toBeInstanceOf(LumenOcrProvider);
     expect(() => getChatProvider()).toThrow(/not implemented/i);
   });
 });
