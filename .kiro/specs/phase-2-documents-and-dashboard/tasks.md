@@ -73,7 +73,7 @@ This plan is limited to Person 1 platform/UI work. It does not change `product.m
     - Add unit tests for mock-default and exact Supabase selection, schema profile resolution, date fallback, safe fixed error messages, and service capabilities.
     - Add boundary tests proving client graphs cannot reach `server-only`, server secrets, service implementations, actions, or `@/mocks`, and that application code does not use `console.*` or render `error.message`.
     - _Design: Correctness Property 20; Testing Strategy > Boundary tests; product.md: §16._
-  - [ ] 3.3 Implement pure Supabase row mapping for both schema profiles
+  - [x] 3.3 Implement pure Supabase row mapping for both schema profiles
     - Add row mappers that validate mapped `DocumentSummary` values, map initial lowercase statuses to the documented lifecycle statuses, derive titles where needed, and count skipped invalid rows.
     - Handle lifecycle columns, latest analysis/deadline data, capability differences, retry flags, and safe fallback values without changing `src/contracts`.
     - _Design: Data source/schema profile selection > Behavior under each migration; Data Models > Document status/card view inputs; product.md: §9.3, §9.4, §12, §13._
@@ -81,7 +81,7 @@ This plan is limited to Person 1 platform/UI work. It does not change `product.m
     - Add separate fast-check coverage for **Property 21: Legacy status mapping is total**.
     - Add example tests for both schema profiles, invalid rows, title fallback, retryability, and the no-reminders initial profile.
     - _Design: Correctness Property 21; Testing Strategy > Service/action tests; product.md: §9.2, §9.4, §13._
-  - [ ] 3.5 Implement the server-only mock documents service
+  - [x] 3.5 Implement the server-only mock documents service
     - Import fixtures only from `src/features/documents/services/mock-documents-service.ts`; keep all other application modules free of `@/mocks` imports.
     - Require the authenticated session for every method, scope in-memory uploaded documents by session user, expose fixture documents plus session uploads, and implement mock prepare/finalize/discard behavior.
     - Return the lifecycle upload policy, mock transport, fixed safe errors, empty/available deadline and reminder data, and the configured mock source.
@@ -96,7 +96,7 @@ This plan is limited to Person 1 platform/UI work. It does not change `product.m
     - Mock Supabase clients to verify user IDs come from claims, paths are recomputed, initial/lifecycle profiles map correctly, mismatches remove objects, repeated finalization returns the existing owned row, and another user's document is not disclosed.
     - Assert no processing job, OCR, Lumen, report, or contract mutation is invoked by the Phase 2 service.
     - _Design: Security Considerations; Testing Strategy > Service/action tests and integration checks; product.md: §9.1, §13, §16._
-  - [ ] 3.8 Implement upload Server Actions and safe action results
+  - [x] 3.8 Implement upload Server Actions and safe action results
     - Add `prepareDocumentUploadAction`, `finalizeDocumentUploadAction`, and `discardDocumentUploadAction` in a `
 server-only action module.
     - Parse unknown inputs with the corresponding Zod schema, re-check authentication through the service, return discriminated `ActionResult` values, map known service errors to safe API codes, and map unknown failures to generic `INTERNAL` without raw messages.
@@ -145,12 +145,12 @@ server-only action module.
     - _Design: Example Usage; Testing Strategy > Example-based unit tests; product.md: §3.4, §9.3, §9.4._
 
 - [ ] 5. Implement the upload composer and upload interaction layer
-  - [ ] 5.1 Implement direct upload transport and drop-zone helpers
+  - [x] 5.1 Implement direct upload transport and drop-zone helpers
     - Add the client-only XHR transport with progress, timeout, abort, HTTP 409 handling, and network/error classification as specified.
     - Add the drag/drop hook as an enhancement while retaining keyboard and button input paths, and add the queue orchestration hook that serializes actions, limits byte-transfer concurrency to three, reuses valid tickets, and refreshes once after the batch settles.
     - Keep browser file bytes out of Server Actions and never expose signed paths in the URL bar or logs.
     - _Design: Upload composer props/hooks; Mutations; Upload sequences; Error Handling > Upload errors; product.md: §5.2, §9.1, §16._
-  - [ ] 5.2 Implement queued-file chips and per-file state presentation
+  - [x] 5.2 Implement queued-file chips and per-file state presentation
     - Add `QueuedFileChip` with file identity, size, phase text, honest byte progress, retry/remove controls, fixed safe error copy, and polite/alert announcements.
     - Represent rejected, preparing, uploading, finalizing, received, and failed states without claiming OCR/analysis has begun.
     - Ensure controls have 44px targets, visible labels, progress semantics, and no reliance on color alone.
@@ -171,7 +171,7 @@ server-only action module.
     - _Design: Testing Strategy > Markup/accessibility and boundary tests; Security Considerations; product.md: §5.2, §9.1, §16._
 
 - [ ] 6. Build the document vault
-  - [ ] 6.1 Implement vault rows, lists, toolbar, and empty-state variants
+  - [x] 6.1 Implement vault rows, lists, toolbar, and empty-state variants
     - Add `DocumentRow`, `DocumentList`, `VaultToolbar`, `VaultEmptyState`, and `RefreshButton` using the card/status/deadline view models.
     - Render one stretched title link per row with title, category/subtype, upload date, processing status, analysis status, next deadline or failure reason, and mobile card layout.
     - Include debounced search, URL-backed category/status/sort controls, deterministic query serialization, a skipped-row notice, and a refresh action that announces completion.
@@ -187,7 +187,7 @@ server-only action module.
     - _Design: Testing Strategy > Markup/accessibility tests; Data Models > Vault query; product.md: §9.3, §9.4, §14._
 
 - [ ] 7. Build the dashboard priority sections
-  - [ ] 7.1 Implement the cached dashboard snapshot and greeting data flow
+  - [x] 7.1 Implement the cached dashboard snapshot and greeting data flow
     - Add the server-only cached `getDashboardSnapshot()` that loads documents, deadline signals, reminders, and source data in parallel, computes today once, and derives the dashboard view models.
     - Add `Greeting` with Asia/Manila morning/afternoon/evening copy and a nameless fallback, and keep request-time reads behind Suspense.
     - Never use current time during prerendering and never expose a report or analysis text in the Phase 2 dashboard.
