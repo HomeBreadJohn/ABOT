@@ -23,6 +23,9 @@ import type {
   OcrCorrection,
 } from "@/features/intelligence/services/analysis-engine";
 import { FixtureAnalysisEngine } from "@/features/intelligence/services/fixture-analysis-engine";
+import { RealAnalysisEngine } from "@/features/intelligence/services/real-analysis-engine";
+import { getChatProvider } from "@/lib/providers";
+import { getProviderEnv } from "@/lib/env/server";
 
 type AnalysisOutcome = "COMPLETED" | "REVIEW_REQUIRED" | "NEEDS_CORRECTION";
 
@@ -230,9 +233,15 @@ async function loadStatus(
 /** Build the default, production-wired dependencies. */
 function defaultDeps(): AnalyzeJobDeps {
   const admin = createAdminClient();
+  // Mock mode keeps the deterministic fixture engine; any other mode runs the
+  // real engine over the chat provider for that mode.
+  const engine =
+    getProviderEnv().mode === "mock"
+      ? new FixtureAnalysisEngine()
+      : new RealAnalysisEngine(getChatProvider());
   return {
     admin,
-    engine: new FixtureAnalysisEngine(),
+    engine,
     loadPages,
     loadCorrections,
     loadLanguage,

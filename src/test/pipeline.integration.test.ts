@@ -23,9 +23,13 @@ import {
   ANALYSIS_SCHEMA_VERSION,
   canTransition,
   mockUtilityBillAnalysis,
+  parseAnalysisResult,
   type AnalysisResult,
   type DocumentLifecycle,
 } from "@/contracts";
+import { MockChatProvider } from "@/lib/providers";
+import { RealAnalysisEngine } from "@/features/intelligence/services/real-analysis-engine";
+import { utilityBillPages } from "@/lib/providers/mock/fixtures/utility-bill-pages";
 import {
   registerJobHandler,
   type EnqueueInput,
@@ -285,5 +289,256 @@ describe("pipeline end-to-end (handler chain with fakes)", () => {
     }
     // The fixture carries the real documentId everywhere (sanity vs. mock-doc-1).
     expect(mockUtilityBillAnalysis.document.documentId).not.toBe(documentId);
+  });
+
+  it("drives a low-confidence amount through the real engine to NEEDS_CORRECTION with evidence on the amount words", async () => {
+    const documentId = "33333333-3333-3333-3333-333333333333";
+
+    // Utility-bill page 1 text with a low OCR confidence on the amount words
+    // ("PHP 2,450.00"), so the critical-field rule flags it REQUIRED.
+    const page1 = utilityBillPages[0];
+    const lowAmountWords = page1.words.map((w) =>
+      /2,450\.00|PHP/.test(w.text) ? { ...w, confidence: 0.6 } : w,
+    );
+    const pages: NormalizedPage[] = [
+      { ...page1, words: lowAmountWords, averageConfidence: 0.8 },
+    ];
+
+    const chat = new MockChatProvider();
+    // Classify -> UTILITIES, confident.
+    chat.respondWith(
+      (m) => m.includes("You classify a document"),
+      JSON.stringify({
+        category: "UTILITIES",
+        subtype: "Electricity bill",
+        issuer: "Sample Electric Cooperative",
+        confidence: 0.95,
+        candidates: [{ category: "UTILITIES", confidence: 0.95 }],
+      }),
+    );
+    // Per-chunk -> one KEY_INFORMATION finding whose quote is the amount line.
+    chat.respondWith(
+      (m) => m.includes("per-chunk analysis"),
+      JSON.stringify({
+        findings: [
+          {
+            type: "KEY_INFORMATION",
+            title: "Amount due",
+            explanation: "The bill states PHP 2,450.00 is due.",
+            informationStatus: "FOUND",
+            confidence: 0.9,
+            basis: "Billing summary line.",
+            quote: "Amount Due: PHP 2,450.00",
+            page: 1,
+          },
+        ],
+      }),
+    );
+    // Consolidation -> overview and explanation.
+    chat.respondWith(
+      (m) => m.includes("Consolidate these findings"),
+      JSON.stringify({
+        overview: "A monthly electricity bill.",
+        explanation: "This is your electricity bill for the month.",
+      }),
+    );
+
+    const engine = new RealAnalysisEngine(chat);
+    const { result, outcome } = await engine.analyze({
+      documentId,
+      pages,
+      corrections: [],
+      language: "EN",
+    });
+
+    // The report validates against the contract with the real document id.
+    const validated = parseAnalysisResult(result, { documentId });
+
+    expect(outcome).toBe("NEEDS_CORRECTION");
+
+    const required = validated.reviewRequirements.filter(
+      (r) => r.reviewStatus === "REQUIRED",
+    );
+    expect(required).toHaveLength(1);
+    expect(required[0].impactLevel).toBe("CRITICAL");
+
+    // The flagged finding has evidence whose word range points at the amount.
+    const flagged = validated.keyInformation.find(
+      (f) => f.id === required[0].findingId,
+    );
+    expect(flagged).toBeDefined();
+    const evidence = validated.evidence.find((e) =>
+      flagged!.evidenceIds.includes(e.id),
+    );
+    expect(evidence).toBeDefined();
+    expect(evidence!.sourceType).toBe("OCR_TEXT");
+    // The amount line is words 1..4 ("Amount Due: PHP 2,450.00") on page 1.
+    expect(evidence!.pageNumber).toBe(1);
+    expect(evidence!.excerpt).toContain("2,450.00");
+  });
+
+  it("resolves a finding whose quote appears only on a late page (>=4) to that page's words", async () => {
+    const documentId = "44444444-4444-4444-4444-444444444444";
+
+    // A five-page document. The supporting quote appears ONLY on page 5. With
+    // the claimed page hardcoded to 1, mapQuoteToEvidence (page +/-1) never
+    // reaches page 5 and the evidence is silently lost. The chunk finding
+    // carries the real page (5) via the structured quote channel.
+    const mk = (pageNumber: number, text: string): NormalizedPage => {
+      const words = text
+        .split(/\s+/)
+        .filter(Boolean)
+        .map((word, index) => ({ index, text: word, confidence: 0.95 }));
+      return {
+        pageNumber,
+        status: "READY",
+        text,
+        words,
+        averageConfidence: 0.95,
+      };
+    };
+    const pages: NormalizedPage[] = [
+      mk(1, "Cover page with introductory boilerplate text only."),
+      mk(2, "Second page of generic terms and background."),
+      mk(3, "Third page describing the account and service details."),
+      mk(4, "Fourth page listing contact information and notices."),
+      mk(5, "The late payment penalty is 2 percent per month overdue."),
+    ];
+
+    const chat = new MockChatProvider();
+    chat.respondWith(
+      (m) => m.includes("You classify a document"),
+      JSON.stringify({
+        category: "UTILITIES",
+        subtype: "Electricity bill",
+        issuer: "Sample Electric Cooperative",
+        confidence: 0.95,
+        candidates: [{ category: "UTILITIES", confidence: 0.95 }],
+      }),
+    );
+    // One WATCHOUT finding whose quote lives only on page 5.
+    chat.respondWith(
+      (m) => m.includes("per-chunk analysis"),
+      JSON.stringify({
+        findings: [
+          {
+            type: "WATCHOUT",
+            title: "Late payment penalty",
+            explanation: "A penalty applies to overdue payments.",
+            informationStatus: "FOUND",
+            confidence: 0.9,
+            basis: "Penalty clause.",
+            quote: "The late payment penalty is 2 percent per month overdue.",
+            page: 5,
+          },
+        ],
+      }),
+    );
+    chat.respondWith(
+      (m) => m.includes("Consolidate these findings"),
+      JSON.stringify({
+        overview: "A monthly electricity bill.",
+        explanation: "This is your electricity bill for the month.",
+      }),
+    );
+
+    const engine = new RealAnalysisEngine(chat);
+    const { result } = await engine.analyze({
+      documentId,
+      pages,
+      corrections: [],
+      language: "EN",
+    });
+
+    const validated = parseAnalysisResult(result, { documentId });
+
+    const watchout = validated.watchouts.find(
+      (f) => f.title === "Late payment penalty",
+    );
+    expect(watchout).toBeDefined();
+    // The evidence must resolve to page 5 — the bug drops it entirely.
+    expect(watchout!.evidenceIds).toHaveLength(1);
+    const evidence = validated.evidence.find((e) =>
+      watchout!.evidenceIds.includes(e.id),
+    );
+    expect(evidence).toBeDefined();
+    expect(evidence!.pageNumber).toBe(5);
+    expect(evidence!.sourceType).toBe("OCR_TEXT");
+    expect(evidence!.excerpt).toContain("penalty");
+  });
+
+  it("drops a fabricated quote: the finding keeps no evidence and no evidence row is invented", async () => {
+    const documentId = "55555555-5555-5555-5555-555555555555";
+
+    // A one-page document. The AI returns a quote that does NOT appear in the
+    // OCR text. mapQuoteToEvidence must return null, so the engine attaches no
+    // evidence and fabricates nothing.
+    const pages: NormalizedPage[] = [
+      {
+        pageNumber: 1,
+        status: "READY",
+        text: "Monthly electricity bill for the service address on file.",
+        words: "Monthly electricity bill for the service address on file."
+          .split(/\s+/)
+          .filter(Boolean)
+          .map((word, index) => ({ index, text: word, confidence: 0.95 })),
+        averageConfidence: 0.95,
+      },
+    ];
+
+    const chat = new MockChatProvider();
+    chat.respondWith(
+      (m) => m.includes("You classify a document"),
+      JSON.stringify({
+        category: "UTILITIES",
+        subtype: "Electricity bill",
+        issuer: "Sample Electric Cooperative",
+        confidence: 0.95,
+        candidates: [{ category: "UTILITIES", confidence: 0.95 }],
+      }),
+    );
+    // One finding whose supporting quote is absent from the OCR text entirely.
+    chat.respondWith(
+      (m) => m.includes("per-chunk analysis"),
+      JSON.stringify({
+        findings: [
+          {
+            type: "KEY_INFORMATION",
+            title: "Court-ordered account closure",
+            explanation: "The account has been closed by order of the court.",
+            informationStatus: "FOUND",
+            confidence: 0.9,
+            basis: "Legal notice.",
+            quote: "Your account has been permanently closed by order of the court.",
+            page: 1,
+          },
+        ],
+      }),
+    );
+    chat.respondWith(
+      (m) => m.includes("Consolidate these findings"),
+      JSON.stringify({
+        overview: "A monthly electricity bill.",
+        explanation: "This is your electricity bill for the month.",
+      }),
+    );
+
+    const engine = new RealAnalysisEngine(chat);
+    const { result } = await engine.analyze({
+      documentId,
+      pages,
+      corrections: [],
+      language: "EN",
+    });
+
+    const validated = parseAnalysisResult(result, { documentId });
+
+    const finding = validated.keyInformation.find(
+      (f) => f.title === "Court-ordered account closure",
+    );
+    expect(finding).toBeDefined();
+    // The fabricated quote maps to nothing: no evidence ids, no evidence rows.
+    expect(finding!.evidenceIds).toEqual([]);
+    expect(validated.evidence).toHaveLength(0);
   });
 });

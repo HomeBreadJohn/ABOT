@@ -207,7 +207,7 @@ describe("HybridAnalysisEngine", () => {
     };
 
     const engine = new HybridAnalysisEngine(chat);
-    const { result } = await engine.analyze({
+    const { result, quotesByFinding } = await engine.analyzeWithQuotes({
       documentId: "doc-1",
       pages: multiChunkPages(),
       corrections: [],
@@ -217,8 +217,15 @@ describe("HybridAnalysisEngine", () => {
 
     // All merged into a single key-information finding.
     expect(result.keyInformation).toHaveLength(1);
-    expect(result.keyInformation[0].basis).toContain("quote-from-chunk-1");
-    expect(result.keyInformation[0].basis).toContain("quote-from-chunk-2");
+    // basis holds only the real basis text — no quote suffix.
+    expect(result.keyInformation[0].basis).toBe("Billing summary.");
+    // The combined quotes ride on the structured channel, each on its own page.
+    const quotes = quotesByFinding.get(result.keyInformation[0].id);
+    expect(quotes).toEqual([
+      { quote: "quote-from-chunk-1", page: 1 },
+      { quote: "quote-from-chunk-2", page: 2 },
+      { quote: "quote-from-chunk-3", page: 3 },
+    ]);
   });
 
   it("produces a valid draft AnalysisResult with the module and input metadata", async () => {

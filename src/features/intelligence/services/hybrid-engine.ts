@@ -30,7 +30,10 @@ import type {
   AnalysisEngineResult,
 } from "@/features/intelligence/services/analysis-engine";
 
-/** A merged finding: one candidate type+title, with every quote and page seen. */
+/** A supporting quote paired with the real page it was found on. */
+export type FindingQuote = { quote: string; page: number };
+
+/** A merged finding: one candidate type+title, with every quote+page seen. */
 type MergedFinding = {
   type: string;
   title: string;
@@ -38,7 +41,7 @@ type MergedFinding = {
   confidence: number;
   explanation: string;
   basis: string;
-  quotes: string[];
+  quotes: FindingQuote[];
   pages: number[];
 };
 
@@ -59,7 +62,21 @@ export class HybridAnalysisEngine implements AnalysisEngine {
 
   constructor(private readonly chat: ChatProvider) {}
 
+  /** Conforms to the AnalysisEngine interface; drops the quote channel. */
   async analyze(input: AnalysisEngineInput): Promise<AnalysisEngineResult> {
+    const { result, outcome } = await this.analyzeWithQuotes(input);
+    return { result, outcome };
+  }
+
+  /**
+   * Like analyze, but also returns the per-finding supporting quotes with their
+   * real pages, keyed by the same finding ids bucket() assigns
+   * (`${type.toLowerCase()}-${index}`). RealAnalysisEngine uses this to map each
+   * quote on its own page instead of defaulting to page 1.
+   */
+  async analyzeWithQuotes(input: AnalysisEngineInput): Promise<
+    AnalysisEngineResult & { quotesByFinding: Map<string, FindingQuote[]> }
+  > {
     // Step 1: classify (opens its own session and sends one message).
     const classification = await classifyDocument(
       input.pages.map((p) => ({ pageNumber: p.pageNumber, text: p.text })),
@@ -124,6 +141,7 @@ export class HybridAnalysisEngine implements AnalysisEngine {
     ].sort((a, b) => a - b);
     const partial = unavailablePages.length > 0;
 
+    const quotesByFinding = new Map<string, FindingQuote[]>();
     const result = this.buildDraft({
       input,
       classification,
@@ -133,9 +151,10 @@ export class HybridAnalysisEngine implements AnalysisEngine {
       merged,
       partial,
       unavailablePages,
+      quotesByFinding,
     });
 
-    return { result, outcome: "COMPLETED" };
+    return { result, outcome: "COMPLETED", quotesByFinding };
   }
 
   /** Analyze one chunk, using the cache. Returns null when the chunk fails. */
@@ -172,6 +191,7 @@ export class HybridAnalysisEngine implements AnalysisEngine {
     merged: MergedFinding[];
     partial: boolean;
     unavailablePages: number[];
+    quotesByFinding: Map<string, FindingQuote[]>;
   }): AnalysisResult {
     const {
       input,
@@ -180,6 +200,7 @@ export class HybridAnalysisEngine implements AnalysisEngine {
       merged,
       partial,
       unavailablePages,
+      quotesByFinding,
     } = args;
 
     const limitations = partial
@@ -199,15 +220,15 @@ export class HybridAnalysisEngine implements AnalysisEngine {
       },
       overview: args.overview,
       explanation: args.explanation,
-      keyInformation: bucket(merged, "KEY_INFORMATION"),
-      obligations: bucket(merged, "OBLIGATION"),
-      watchouts: bucket(merged, "WATCHOUT"),
-      consequences: bucket(merged, "CONSEQUENCE").map((f) => ({
+      keyInformation: bucket(merged, "KEY_INFORMATION", quotesByFinding),
+      obligations: bucket(merged, "OBLIGATION", quotesByFinding),
+      watchouts: bucket(merged, "WATCHOUT", quotesByFinding),
+      consequences: bucket(merged, "CONSEQUENCE", quotesByFinding).map((f) => ({
         ...f,
         kind: f.informationStatus === "INFERRED" ? "INFERRED" : "EXPLICIT",
       })),
-      nextSteps: bucket(merged, "NEXT_STEP"),
-      importantDates: bucket(merged, "IMPORTANT_DATE").map((f) => ({
+      nextSteps: bucket(merged, "NEXT_STEP", quotesByFinding),
+      importantDates: bucket(merged, "IMPORTANT_DATE", quotesByFinding).map((f) => ({
         ...f,
         date: null,
         dateText: f.title,
@@ -251,7 +272,9 @@ function mergeFindings(findings: ChunkFinding[]): MergedFinding[] {
     const key = `${f.type}|${normalizeTitle(f.title)}`;
     const existing = byKey.get(key);
     if (existing) {
-      if (!existing.quotes.includes(f.quote)) existing.quotes.push(f.quote);
+      if (!existing.quotes.some((q) => q.quote === f.quote)) {
+        existing.quotes.push({ quote: f.quote, page: f.page });
+      }
       if (!existing.pages.includes(f.page)) existing.pages.push(f.page);
       existing.confidence = Math.max(existing.confidence, f.confidence);
     } else {
@@ -262,7 +285,7 @@ function mergeFindings(findings: ChunkFinding[]): MergedFinding[] {
         confidence: f.confidence,
         explanation: f.explanation,
         basis: f.basis,
-        quotes: [f.quote],
+        quotes: [{ quote: f.quote, page: f.page }],
         pages: [f.page],
       });
     }
@@ -272,19 +295,29 @@ function mergeFindings(findings: ChunkFinding[]): MergedFinding[] {
 }
 
 /**
- * Draft findings for one bucket. Evidence IDs are empty here (mapping is B14);
- * each merged finding's quotes are carried in `basis` so B16 can resolve them.
+ * Draft findings for one bucket. Evidence IDs are empty here (mapping runs in
+ * RealAnalysisEngine); each finding's supporting quotes with their real pages
+ * are recorded in `quotesByFinding`, keyed by the finding id, so the engine can
+ * resolve them on the correct page.
  */
-function bucket(merged: MergedFinding[], type: string): Finding[] {
+function bucket(
+  merged: MergedFinding[],
+  type: string,
+  quotesByFinding: Map<string, FindingQuote[]>,
+): Finding[] {
   return merged
     .filter((m) => m.type === type)
-    .map((m, index) => ({
-      id: `${type.toLowerCase()}-${index}`,
-      title: m.title,
-      explanation: m.explanation,
-      informationStatus: m.informationStatus,
-      confidence: m.confidence,
-      basis: `${m.basis} Quotes: ${m.quotes.join(" | ")}`,
-      evidenceIds: [],
-    }));
+    .map((m, index) => {
+      const id = `${type.toLowerCase()}-${index}`;
+      quotesByFinding.set(id, m.quotes);
+      return {
+        id,
+        title: m.title,
+        explanation: m.explanation,
+        informationStatus: m.informationStatus,
+        confidence: m.confidence,
+        basis: m.basis,
+        evidenceIds: [],
+      };
+    });
 }
