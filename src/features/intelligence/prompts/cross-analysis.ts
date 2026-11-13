@@ -14,7 +14,7 @@ export type CompactDocument = {
  * document (titles, statuses, page numbers) only — never the full OCR text.
  * The findings are wrapped as untrusted DATA with anti-injection framing, and
  * the model is told to cite {documentId, pageNumber} evidence from the SOURCE
- * documents for every finding. Stays within the 4000-char chat limit.
+ * documents for every finding. Stays within the ~1900-char chat limit.
  */
 export function buildCrossAnalysisPrompt(documents: CompactDocument[]): string {
   const blocks = documents.map((doc) => {

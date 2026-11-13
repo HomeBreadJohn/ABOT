@@ -26,7 +26,7 @@ const HEADER = [
 /**
  * Build the single follow-up chat message. Document content (summary and
  * evidence excerpts) is wrapped as untrusted DATA. The whole message is trimmed
- * to stay within the 4000-char chat budget: the question and header are kept,
+ * to stay within the ~1900-char chat budget: the question and header are kept,
  * then as many evidence excerpts as fit (already ranked by the caller), then
  * the summary is truncated if still over budget.
  */

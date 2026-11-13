@@ -5,7 +5,10 @@ import type {
   Finding,
 } from "@/contracts";
 import { z } from "zod";
-import type { ChatProvider } from "@/lib/providers/chat-provider";
+import {
+  CHAT_MESSAGE_MAX_LENGTH,
+  type ChatProvider,
+} from "@/lib/providers/chat-provider";
 import { AppError } from "@/lib/http/app-error";
 import { chunkPages, type Chunk } from "@/features/intelligence/services/chunking";
 import {
@@ -29,14 +32,6 @@ import type {
   AnalysisEngineInput,
   AnalysisEngineResult,
 } from "@/features/intelligence/services/analysis-engine";
-
-/**
- * Safe ceiling for a chunk message. Lumen's hard limit is 4000 chars; we budget
- * chunks to this lower bound so framing + guidance + chunk never trips
- * AI_CHAT_QUERY_TOO_LONG, leaving a margin for any gateway-side counting
- * difference (bytes/tokens vs JS string length).
- */
-const CHAT_MESSAGE_SAFE_LIMIT = 3600;
 
 /** A supporting quote paired with the real page it was found on. */
 export type FindingQuote = { quote: string; page: number };
@@ -95,17 +90,17 @@ export class HybridAnalysisEngine implements AnalysisEngine {
 
     // Chunk the pages. NormalizedPage is a structural supertype of
     // ChunkablePage (pageNumber/status/text), so it passes straight through.
-    // Size chunks so prompt (fixed framing + guidance) + chunk stays safely
-    // under the 4000-char chat limit — Lumen returns AI_CHAT_QUERY_TOO_LONG
-    // otherwise. Measure the real overhead from an empty-chunk prompt and keep
-    // a margin for any gateway-side counting differences.
+    // Size chunks so the whole message (fixed framing + guidance + chunk) stays
+    // within the real ~1900-char chat cap — the live Lumen gateway returns
+    // AI_CHAT_QUERY_TOO_LONG above it. Measure the real overhead from an
+    // empty-chunk prompt so framing + chunk <= CHAT_MESSAGE_MAX_LENGTH.
     const promptOverhead = buildChunkAnalysisPrompt(
       "",
       categoryModule.promptGuidance,
     ).length;
     const chunkMaxChars = Math.max(
-      500,
-      CHAT_MESSAGE_SAFE_LIMIT - promptOverhead,
+      300,
+      CHAT_MESSAGE_MAX_LENGTH - promptOverhead,
     );
     const { chunks, failedPages } = chunkPages(input.pages, {
       maxChars: chunkMaxChars,

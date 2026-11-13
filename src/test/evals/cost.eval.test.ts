@@ -70,7 +70,7 @@ function twoPageBill() {
   ];
   const chat = new MockChatProvider();
   chat.respondWith(
-    (m) => m.includes("You classify a document"),
+    (m) => m.includes("Classify a document"),
     JSON.stringify({
       category: "UTILITIES",
       subtype: "Electricity bill",

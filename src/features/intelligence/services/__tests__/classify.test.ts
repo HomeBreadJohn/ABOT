@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { CHAT_MESSAGE_MAX_LENGTH } from "@/lib/providers/chat-provider";
+import { CLASSIFY_TEXT_LIMIT } from "@/features/intelligence/prompts/classify";
 import { MockChatProvider } from "@/lib/providers/mock/mock-chat-provider";
 import { classifyDocument } from "@/features/intelligence/services/classify";
 
@@ -24,7 +25,7 @@ function reply(obj: unknown): string {
 }
 
 describe("classifyDocument", () => {
-  it("sends exactly one message of at most 4000 chars", async () => {
+  it("sends exactly one message within the chat limit", async () => {
     const chat = new RecordingChat();
     chat.respondWith(
       () => true,
@@ -40,16 +41,18 @@ describe("classifyDocument", () => {
     expect(chat.sent[0].length).toBeLessThanOrEqual(CHAT_MESSAGE_MAX_LENGTH);
   });
 
-  it("uses only the first 2500 chars of page text", async () => {
+  it("samples only CLASSIFY_TEXT_LIMIT chars of page text", async () => {
     const chat = new RecordingChat();
     chat.respondWith(
       () => true,
       reply({ category: "OTHER", subtype: "", issuer: "", confidence: 0.9 }),
     );
-    const head = "H".repeat(2500);
+    const head = "H".repeat(CLASSIFY_TEXT_LIMIT);
     const tail = "TAIL_MARKER";
     await classifyDocument(pages(head + tail), chat);
     expect(chat.sent[0]).not.toContain(tail);
+    // The whole message stays within the real chat cap.
+    expect(chat.sent[0].length).toBeLessThanOrEqual(CHAT_MESSAGE_MAX_LENGTH);
   });
 
   it("returns the classified category on a confident reply", async () => {

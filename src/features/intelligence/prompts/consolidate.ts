@@ -11,7 +11,7 @@ export type CompactFinding = {
 /**
  * Build the consolidation message from the COMPACT merged findings only
  * (titles, statuses, pages). The full document text is never included here;
- * the per-chunk step already read it. Stays within the 4000-char chat limit.
+ * the per-chunk step already read it. Stays within the ~1900-char chat limit.
  */
 export function buildConsolidatePrompt(findings: CompactFinding[]): string {
   const lines = findings.map(

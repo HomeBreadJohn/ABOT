@@ -66,7 +66,7 @@ function normalize(value: string): string {
 function scriptChat(fixture: EvalFixture): MockChatProvider {
   const chat = new MockChatProvider();
   chat.respondWith(
-    (m) => m.includes("You classify a document"),
+    (m) => m.includes("Classify a document"),
     JSON.stringify(fixture.classification),
   );
   chat.respondWith(

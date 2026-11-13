@@ -5,7 +5,7 @@
  *   1. finish within the message budget (<= 2 + chunks * 2 messages, per B13),
  *   2. have every page either covered by some analyzed chunk or listed as
  *      unavailable in the report, and
- *   3. never send a single chat message longer than 4000 characters.
+ *   3. never send a single chat message longer than the real chat cap.
  *
  * The document is fictional boilerplate. No real personal data and no claim it
  * came from Lumen.
@@ -17,6 +17,8 @@ import { CHAT_MESSAGE_MAX_LENGTH, type ChatProvider } from "@/lib/providers/chat
 import { MockChatProvider } from "@/lib/providers";
 import { RealAnalysisEngine } from "@/features/intelligence/services/real-analysis-engine";
 import { chunkPages } from "@/features/intelligence/services/chunking";
+import { getModule } from "@/features/intelligence/modules/registry";
+import { buildChunkAnalysisPrompt } from "@/features/intelligence/prompts/chunk-analysis";
 import type { NormalizedPage } from "@/lib/providers/ocr-provider";
 
 const PAGE_COUNT = 30;
@@ -49,7 +51,7 @@ function build30Pages(): NormalizedPage[] {
 
 /**
  * Wraps a ChatProvider to count messages and assert every message is within the
- * 4000-char chat limit as it is sent.
+ * real chat limit as it is sent.
  */
 class CountingChat implements ChatProvider {
   messageCount = 0;
@@ -76,12 +78,12 @@ class CountingChat implements ChatProvider {
 }
 
 describe("long-document eval (30-page synthetic, mock mode)", () => {
-  it("finishes within the message budget, covers every page, and never exceeds 4000 chars", async () => {
+  it("finishes within the message budget, covers every page, and never exceeds the chat cap", async () => {
     const pages = build30Pages();
 
     const mock = new MockChatProvider();
     mock.respondWith(
-      (m) => m.includes("You classify a document"),
+      (m) => m.includes("Classify a document"),
       JSON.stringify({
         category: "LEGAL",
         subtype: "Service agreement",
@@ -115,8 +117,14 @@ describe("long-document eval (30-page synthetic, mock mode)", () => {
 
     const validated = parseAnalysisResult(result, { documentId });
 
-    // The chunk plan the engine uses, computed the same way.
-    const { chunks, failedPages } = chunkPages(pages);
+    // The chunk plan the engine uses, computed the same way: chunks are
+    // budgeted so framing + guidance + chunk fits the real ~1900-char cap.
+    const overhead = buildChunkAnalysisPrompt(
+      "",
+      getModule("LEGAL").promptGuidance,
+    ).length;
+    const maxChars = Math.max(300, CHAT_MESSAGE_MAX_LENGTH - overhead);
+    const { chunks, failedPages } = chunkPages(pages, { maxChars });
     expect(chunks.length).toBeGreaterThan(0);
 
     // 1. Message budget: classify (1) + one per chunk (+ up to one repair each)
@@ -140,7 +148,7 @@ describe("long-document eval (30-page synthetic, mock mode)", () => {
     expect(failedPages).toEqual([]);
     expect(validated.analysisMetadata.partial).toBe(false);
 
-    // 3. No single chat message exceeded the 4000-char limit (also enforced
+    // 3. No single chat message exceeded the real chat limit (also enforced
     //    inside CountingChat.send as each message is sent).
     expect(chat.maxMessageLength).toBeLessThanOrEqual(CHAT_MESSAGE_MAX_LENGTH);
 

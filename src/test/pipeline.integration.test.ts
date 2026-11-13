@@ -307,7 +307,7 @@ describe("pipeline end-to-end (handler chain with fakes)", () => {
     const chat = new MockChatProvider();
     // Classify -> UTILITIES, confident.
     chat.respondWith(
-      (m) => m.includes("You classify a document"),
+      (m) => m.includes("Classify a document"),
       JSON.stringify({
         category: "UTILITIES",
         subtype: "Electricity bill",
@@ -407,7 +407,7 @@ describe("pipeline end-to-end (handler chain with fakes)", () => {
 
     const chat = new MockChatProvider();
     chat.respondWith(
-      (m) => m.includes("You classify a document"),
+      (m) => m.includes("Classify a document"),
       JSON.stringify({
         category: "UTILITIES",
         subtype: "Electricity bill",
@@ -488,7 +488,7 @@ describe("pipeline end-to-end (handler chain with fakes)", () => {
 
     const chat = new MockChatProvider();
     chat.respondWith(
-      (m) => m.includes("You classify a document"),
+      (m) => m.includes("Classify a document"),
       JSON.stringify({
         category: "UTILITIES",
         subtype: "Electricity bill",
@@ -570,7 +570,7 @@ describe("pipeline end-to-end (handler chain with fakes)", () => {
 
     const chat = new MockChatProvider();
     chat.respondWith(
-      (m) => m.includes("You classify a document"),
+      (m) => m.includes("Classify a document"),
       JSON.stringify({
         category: "UTILITIES",
         subtype: "Electricity bill",

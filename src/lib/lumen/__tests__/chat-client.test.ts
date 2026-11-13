@@ -4,6 +4,7 @@ import instancesFixture from "@/lib/lumen/__fixtures__/chat/instances.json";
 import sessionFixture from "@/lib/lumen/__fixtures__/chat/session.json";
 import messageFixture from "@/lib/lumen/__fixtures__/chat/message.json";
 import { LumenChatProvider } from "@/lib/lumen/chat-client";
+import { CHAT_MESSAGE_MAX_LENGTH } from "@/lib/providers/chat-provider";
 
 const LUMEN_ENV = {
   PROVIDER_MODE: "lumen",
@@ -111,7 +112,7 @@ describe("LumenChatProvider", () => {
     );
   });
 
-  it("send throws before any request when the message exceeds 4000 characters", async () => {
+  it("send throws before any request when the message exceeds the chat limit", async () => {
     withLumenEnv();
     const { transport, calls } = recordingTransport((call) =>
       call.url.endsWith("/sessions")
@@ -123,7 +124,7 @@ describe("LumenChatProvider", () => {
     const { sessionId } = await provider.openSession();
     const callsBefore = calls.length;
     await expect(
-      provider.send(sessionId, "x".repeat(4001)),
+      provider.send(sessionId, "x".repeat(CHAT_MESSAGE_MAX_LENGTH + 1)),
     ).rejects.toBeDefined();
     expect(calls).toHaveLength(callsBefore);
   });

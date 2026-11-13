@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest";
 import { z } from "zod";
 
 import { requestJson } from "@/features/intelligence/services/json-reply";
-import type { ChatProvider } from "@/lib/providers/chat-provider";
+import {
+  CHAT_MESSAGE_MAX_LENGTH,
+  type ChatProvider,
+} from "@/lib/providers/chat-provider";
 
 const schema = z.object({ category: z.string(), confidence: z.number() });
 
@@ -80,11 +83,11 @@ describe("requestJson", () => {
     expect(chat.sent).toHaveLength(2);
   });
 
-  it("throws before sending when the message exceeds 4000 characters", async () => {
+  it("throws before sending when the message exceeds the chat limit", async () => {
     const chat = new FakeChat(['{"category":"BILL","confidence":0.9}']);
 
     await expect(
-      requestJson(chat, "s", "x".repeat(4001), schema),
+      requestJson(chat, "s", "x".repeat(CHAT_MESSAGE_MAX_LENGTH + 1), schema),
     ).rejects.toBeDefined();
     expect(chat.sent).toHaveLength(0);
   });

@@ -4,6 +4,7 @@ import { getOcrProvider, getChatProvider } from "@/lib/providers";
 import type { OcrProvider } from "@/lib/providers/ocr-provider";
 import { MockOcrProvider } from "@/lib/providers/mock/mock-ocr-provider";
 import { MockChatProvider } from "@/lib/providers/mock/mock-chat-provider";
+import { CHAT_MESSAGE_MAX_LENGTH } from "@/lib/providers/chat-provider";
 import { LumenOcrProvider } from "@/lib/lumen/ocr-client";
 import { LumenChatProvider } from "@/lib/lumen/chat-client";
 import {
@@ -102,10 +103,12 @@ describe("MockChatProvider", () => {
     expect((await chat.send(sessionId, "say hello")).reply).toBe("hi there");
   });
 
-  it("throws when a message exceeds 4000 characters", async () => {
+  it("throws when a message exceeds the chat limit", async () => {
     const chat = new MockChatProvider();
     const { sessionId } = await chat.openSession();
-    await expect(chat.send(sessionId, "x".repeat(4001))).rejects.toThrow();
+    await expect(
+      chat.send(sessionId, "x".repeat(CHAT_MESSAGE_MAX_LENGTH + 1)),
+    ).rejects.toThrow();
   });
 });
 

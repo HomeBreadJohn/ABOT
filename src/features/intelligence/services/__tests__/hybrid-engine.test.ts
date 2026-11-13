@@ -5,6 +5,7 @@ import type { NormalizedPage } from "@/lib/providers/ocr-provider";
 import { MockChatProvider } from "@/lib/providers/mock/mock-chat-provider";
 import { HybridAnalysisEngine } from "@/features/intelligence/services/hybrid-engine";
 import { PROMPT_VERSION } from "@/features/intelligence/prompts/system-rules";
+import { CHAT_MESSAGE_MAX_LENGTH } from "@/lib/providers/chat-provider";
 
 /** A long READY page so chunking produces several chunks at the default size. */
 function page(pageNumber: number, text: string): NormalizedPage {
@@ -73,7 +74,7 @@ function makeEngine() {
     return originalSend(sessionId, message);
   };
 
-  chat.respondWith((m) => m.includes("classify a document"), CLASSIFY_REPLY);
+  chat.respondWith((m) => m.includes("Classify a document"), CLASSIFY_REPLY);
   chat.respondWith((m) => m.includes("Consolidate"), CONSOLIDATION_REPLY);
   chat.respondWith((m) => m.includes("per-chunk"), chunkReply(ONE_FINDING));
 
@@ -96,14 +97,14 @@ describe("HybridAnalysisEngine", () => {
 
     const chunkMessages = messages.filter((m) => m.includes("per-chunk"));
     const consolidation = messages.filter((m) => m.includes("Consolidate"));
-    const classify = messages.filter((m) => m.includes("classify a document"));
+    const classify = messages.filter((m) => m.includes("Classify a document"));
 
     expect(classify).toHaveLength(1);
     expect(chunkMessages.length).toBeGreaterThanOrEqual(3);
     expect(consolidation).toHaveLength(1);
 
     // classify first, consolidation last.
-    expect(messages[0]).toContain("classify a document");
+    expect(messages[0]).toContain("Classify a document");
     expect(messages[messages.length - 1]).toContain("Consolidate");
 
     // Total messages <= 2 + chunks*2 (chunk count = number of READY chunks).
@@ -127,15 +128,16 @@ describe("HybridAnalysisEngine", () => {
     );
     expect(prompts.length).toBeGreaterThan(0);
     for (const prompt of prompts) {
-      expect(prompt).toContain("Never invent");
-      expect(prompt.toLowerCase()).toContain("facts from");
-      expect(prompt.toLowerCase()).toContain("fraudulent");
-      expect(prompt).toMatch(/never (claim|take).*action/i);
-      expect(prompt.toLowerCase()).toContain("quote the exact");
+      // The five section-8 safety boundaries, in their compressed wording.
+      expect(prompt).toContain("Never invent"); // do not invent missing info
+      expect(prompt).toContain("INFERRED, not FOUND"); // separate inference from fact
+      expect(prompt.toLowerCase()).toContain("fraudulent"); // no fraud w/o evidence
+      expect(prompt).toMatch(/never (claim|take).*act/i); // no claiming actions
+      expect(prompt.toLowerCase()).toContain("exact text"); // quote exact text
     }
   });
 
-  it("every prompt fits within the 4000-char chat limit", async () => {
+  it("every prompt fits within the real chat limit", async () => {
     const { engine, messages } = makeEngine();
     await engine.analyze({
       documentId: "doc-1",
@@ -145,7 +147,7 @@ describe("HybridAnalysisEngine", () => {
       category: "UTILITIES",
     });
     for (const m of messages) {
-      expect(m.length).toBeLessThanOrEqual(4000);
+      expect(m.length).toBeLessThanOrEqual(CHAT_MESSAGE_MAX_LENGTH);
     }
   });
 
@@ -158,7 +160,7 @@ describe("HybridAnalysisEngine", () => {
       messages.push(message);
       return originalSend(s, message);
     };
-    chat.respondWith((m) => m.includes("classify a document"), CLASSIFY_REPLY);
+    chat.respondWith((m) => m.includes("Classify a document"), CLASSIFY_REPLY);
     chat.respondWith((m) => m.includes("Consolidate"), CONSOLIDATION_REPLY);
     chat.respondWith((m) => m.includes("per-chunk"), chunkReply(ONE_FINDING));
 
@@ -183,7 +185,7 @@ describe("HybridAnalysisEngine", () => {
 
   it("merges duplicate findings (same type + normalized title) and combines quotes", async () => {
     const chat = new MockChatProvider();
-    chat.respondWith((m) => m.includes("classify a document"), CLASSIFY_REPLY);
+    chat.respondWith((m) => m.includes("Classify a document"), CLASSIFY_REPLY);
     chat.respondWith((m) => m.includes("Consolidate"), CONSOLIDATION_REPLY);
 
     let chunkCall = 0;
@@ -215,17 +217,21 @@ describe("HybridAnalysisEngine", () => {
       category: "UTILITIES",
     });
 
-    // All merged into a single key-information finding.
+    // All merged into a single key-information finding regardless of how many
+    // chunks the pages split into.
     expect(result.keyInformation).toHaveLength(1);
     // basis holds only the real basis text — no quote suffix.
     expect(result.keyInformation[0].basis).toBe("Billing summary.");
-    // The combined quotes ride on the structured channel, each on its own page.
+    // One quote per chunk rides on the structured channel, each on its own
+    // page (page = chunkCall), in chunk order.
     const quotes = quotesByFinding.get(result.keyInformation[0].id);
-    expect(quotes).toEqual([
-      { quote: "quote-from-chunk-1", page: 1 },
-      { quote: "quote-from-chunk-2", page: 2 },
-      { quote: "quote-from-chunk-3", page: 3 },
-    ]);
+    expect(quotes).toEqual(
+      Array.from({ length: chunkCall }, (_, i) => ({
+        quote: `quote-from-chunk-${i + 1}`,
+        page: i + 1,
+      })),
+    );
+    expect(chunkCall).toBeGreaterThanOrEqual(3);
   });
 
   it("produces a valid draft AnalysisResult with the module and input metadata", async () => {
@@ -256,7 +262,7 @@ describe("HybridAnalysisEngine", () => {
 
   it("throws when more than half the chunks fail", async () => {
     const chat = new MockChatProvider();
-    chat.respondWith((m) => m.includes("classify a document"), CLASSIFY_REPLY);
+    chat.respondWith((m) => m.includes("Classify a document"), CLASSIFY_REPLY);
     chat.respondWith((m) => m.includes("Consolidate"), CONSOLIDATION_REPLY);
     // Every chunk returns garbage; requestJson fails for all of them.
     chat.respondWith((m) => m.includes("per-chunk"), "not json at all");
@@ -275,7 +281,7 @@ describe("HybridAnalysisEngine", () => {
 
   it("marks partial and names affected pages when some (<= half) chunks fail", async () => {
     const chat = new MockChatProvider();
-    chat.respondWith((m) => m.includes("classify a document"), CLASSIFY_REPLY);
+    chat.respondWith((m) => m.includes("Classify a document"), CLASSIFY_REPLY);
     chat.respondWith((m) => m.includes("Consolidate"), CONSOLIDATION_REPLY);
 
     let chunkCall = 0;
@@ -354,7 +360,9 @@ describe("HybridAnalysisEngine", () => {
   });
 
   it("exposes PROMPT_VERSION", () => {
-    expect(PROMPT_VERSION).toBe("1");
+    // Bumped to "2" when the analysis prompts were compressed for the ~1900
+    // char cap; chunk cache keys include it so old cached output is invalidated.
+    expect(PROMPT_VERSION).toBe("2");
   });
 
   it("targeted reanalysis: a page-1 change re-sends only the page-1 chunk; others hit the cache", async () => {

@@ -5,6 +5,7 @@ import {
   type ContextEvidence,
 } from "@/features/conversations/services/retrieve-context";
 import { buildFollowUpPrompt } from "@/features/intelligence/prompts/follow-up";
+import { CHAT_MESSAGE_MAX_LENGTH } from "@/lib/providers/chat-provider";
 
 const evidence = (id: string, excerpt: string): ContextEvidence => ({
   id,
@@ -39,7 +40,7 @@ describe("selectEvidence", () => {
 });
 
 describe("buildFollowUpPrompt", () => {
-  it("keeps the whole message within the 4000-char chat budget", () => {
+  it("keeps the whole message within the chat budget", () => {
     const summary = "S".repeat(3000);
     const excerpts = Array.from({ length: 50 }, (_, i) =>
       evidence(`e${i}`, "X".repeat(200)),
@@ -49,7 +50,7 @@ describe("buildFollowUpPrompt", () => {
       evidence: excerpts,
       question: "Q".repeat(500),
     });
-    expect(msg.length).toBeLessThanOrEqual(4000);
+    expect(msg.length).toBeLessThanOrEqual(CHAT_MESSAGE_MAX_LENGTH);
   });
 
   it("wraps document content as untrusted DATA with anti-injection framing", () => {
