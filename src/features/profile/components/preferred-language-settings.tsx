@@ -101,8 +101,8 @@ export function PreferredLanguageSettings({
       </fieldset>
 
       <div className="mt-5 flex min-w-0 flex-col items-start gap-3 sm:flex-row sm:items-center">
-        <Button type="submit" pending={isSaving} pendingLabel="Saving…">
-          Save language
+        <Button type="submit" disabled={isSaving}>
+          {isSaving ? "Saving…" : "Save language"}
         </Button>
         {isSaving ? (
           <p

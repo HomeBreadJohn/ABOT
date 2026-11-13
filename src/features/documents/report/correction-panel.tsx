@@ -67,15 +67,13 @@ export function CorrectionPanel({
         ) : null}
         <p className="text-body-sm text-ink-muted max-w-prose">{reason}</p>
         <div className="grid gap-1.5">
-          <Label htmlFor={inputId} required>
-            {field}
-          </Label>
+          <Label htmlFor={inputId}>{field}</Label>
           <Input
             id={inputId}
             inputMode="decimal"
             value={value}
-            errorId={error ? errorId : undefined}
-            invalid={error !== null}
+            aria-describedby={error ? errorId : undefined}
+            aria-invalid={error !== null}
             onChange={(event) => setValue(event.target.value)}
           />
           {error ? (

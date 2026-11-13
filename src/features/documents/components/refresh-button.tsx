@@ -30,13 +30,16 @@ function RefreshButton() {
         type="button"
         variant="ghost"
         onClick={refresh}
-        pending={isPending}
-        pendingLabel="Checking…"
+        disabled={isPending}
       >
-        {!isPending ? (
-          <RefreshCw aria-hidden="true" className="h-4 w-4" />
-        ) : null}
-        {!isPending ? "Check for updates" : null}
+        {isPending ? (
+          "Checking…"
+        ) : (
+          <>
+            <RefreshCw aria-hidden="true" className="h-4 w-4" />
+            Check for updates
+          </>
+        )}
       </Button>
       <span className="sr-only" role="status" aria-live="polite">
         {announcement}

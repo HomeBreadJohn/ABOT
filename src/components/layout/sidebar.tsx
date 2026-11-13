@@ -34,7 +34,7 @@ export function Sidebar({ mobile = false }: { mobile?: boolean }) {
         </Link>
       </div>
       <Separator />
-      <nav className="flex-1 space-y-1 p-3" aria-label="Main navigation">
+      <nav className="flex-1 space-y-1 p-3" aria-label="Primary navigation">
         {navigation.map(({ href, label, icon: Icon }) => (
           <Link
             key={href}

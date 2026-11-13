@@ -80,12 +80,17 @@ export function SignOutButton() {
         variant="ghost"
         size="sm"
         onClick={handleSignOut}
-        pending={isPending}
-        pendingLabel="Signing out…"
+        disabled={isPending}
         aria-describedby={error ? "sign-out-error" : undefined}
       >
-        <LogOut className="h-4 w-4" aria-hidden="true" />
-        Sign out
+        {isPending ? (
+          "Signing out…"
+        ) : (
+          <>
+            <LogOut className="h-4 w-4" aria-hidden="true" />
+            Sign out
+          </>
+        )}
       </Button>
       {isPending ? (
         <p className="sr-only" role="status" aria-live="polite">
@@ -105,10 +110,9 @@ export function SignOutButton() {
             variant="secondary"
             size="sm"
             onClick={handleSignOut}
-            pending={isPending}
-            pendingLabel="Retrying…"
+            disabled={isPending}
           >
-            Try again
+            {isPending ? "Retrying…" : "Try again"}
           </Button>
         </div>
       ) : null}

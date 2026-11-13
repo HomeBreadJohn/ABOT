@@ -25,7 +25,6 @@ export default async function DocumentReportPage({
     return (
       <div className="mx-auto max-w-3xl min-w-0">
         <PageHeader
-          eyebrow="Report"
           title="We couldn't find this document"
           description="The document may have been removed, or the link is out of date."
         />
@@ -40,7 +39,6 @@ export default async function DocumentReportPage({
   return (
     <div className="mx-auto max-w-3xl min-w-0">
       <PageHeader
-        eyebrow="Report"
         title={fixture.title}
         description="What this document means for you, with the certainty of each detail shown."
       />

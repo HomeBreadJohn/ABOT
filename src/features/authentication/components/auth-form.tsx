@@ -39,11 +39,11 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
         router.push("/dashboard");
         router.refresh();
       }
-    } catch (caughtError) {
+    } catch {
       setError(
-        caughtError instanceof Error
-          ? caughtError.message
-          : "Something went wrong. Please try again.",
+        isRegister
+          ? "We couldn't create your account. Please check your details and try again."
+          : "We couldn't sign you in. Please check your details and try again.",
       );
     } finally {
       setIsPending(false);
