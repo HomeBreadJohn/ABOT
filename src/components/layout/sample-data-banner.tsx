@@ -1,27 +1,40 @@
-import type { DocumentsDataSource } from "@/features/documents/services/documents-service";
+import "server-only";
 
-export function SampleDataBanner({
-  source,
-}: Readonly<{
-  source: DocumentsDataSource;
-}>) {
-  if (source !== "mock") {
+import { getProviderEnv } from "@/lib/env/server";
+
+/**
+ * True only when the document pipeline runs against the mock provider. A
+ * misconfigured provider env counts as "not mock" so the banner never claims
+ * sample data for a setup that is not clearly in mock mode.
+ */
+export function isSampleDataMode(): boolean {
+  try {
+    return getProviderEnv().mode === "mock";
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Server Component. It reads the server env itself, so the env module is never
+ * imported by a client component.
+ */
+export function SampleDataBanner() {
+  if (!isSampleDataMode()) {
     return null;
   }
 
   return (
     <div
-      className="text-body-sm text-ink-muted flex flex-wrap items-center gap-x-3 gap-y-1"
+      className="border-ink-200 bg-brand-50 text-ink-700 flex flex-wrap items-center gap-x-3 gap-y-1 border-b px-4 py-2 text-sm sm:px-6"
       data-source="mock"
       role="note"
-      aria-label="Mock data source"
+      aria-label="Sample data notice"
     >
-      <span className="text-ink font-semibold">Sample data</span>
+      <span className="text-ink-950 font-semibold">Sample data</span>
       <span>
-        {"You're viewing sample documents. They're examples, not your files."}
-      </span>
-      <span className="border-tone-informative-border bg-tone-informative-bg text-caption text-tone-informative-fg rounded-full border px-2 py-0.5 font-medium">
-        Mock source
+        Documents are analysed with sample data, so the results are examples and
+        not a real reading of your file.
       </span>
     </div>
   );

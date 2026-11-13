@@ -10,13 +10,20 @@ const navigation = [
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
-export function Sidebar({ mobile = false }: { mobile?: boolean }) {
+export function Sidebar({
+  mobile = false,
+  recent,
+}: {
+  mobile?: boolean;
+  /** Server-rendered recent documents, passed down by the server shell. */
+  recent?: React.ReactNode;
+}) {
   return (
     <aside
       className={
         mobile
-          ? "flex h-full w-full flex-col bg-surface"
-          : "hidden border-r border-ink-200 bg-surface lg:flex lg:w-64 lg:flex-col"
+          ? "bg-surface flex h-full w-full flex-col"
+          : "border-ink-200 bg-surface hidden border-r lg:flex lg:w-64 lg:flex-col"
       }
     >
       <div className="flex h-16 items-center px-5">
@@ -25,29 +32,30 @@ export function Sidebar({ mobile = false }: { mobile?: boolean }) {
           className="flex items-center gap-2.5"
           aria-label={`${brand.name} home`}
         >
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-500 text-sm font-bold text-ink-950">
+          <span className="bg-brand-500 text-ink-950 flex h-8 w-8 items-center justify-center rounded-lg text-sm font-bold">
             A
           </span>
-          <span className="font-semibold tracking-tight text-ink-950">
+          <span className="text-ink-950 font-semibold tracking-tight">
             {brand.name}
           </span>
         </Link>
       </div>
       <Separator />
-      <nav className="flex-1 space-y-1 p-3" aria-label="Primary navigation">
+      <nav className="space-y-1 p-3" aria-label="Primary navigation">
         {navigation.map(({ href, label, icon: Icon }) => (
           <Link
             key={href}
             href={href}
-            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-ink-600 transition-colors hover:bg-ink-100 hover:text-ink-950"
+            className="text-ink-600 hover:bg-ink-100 hover:text-ink-950 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors"
           >
             <Icon className="h-4 w-4" aria-hidden="true" />
             {label}
           </Link>
         ))}
       </nav>
+      <div className="min-h-0 flex-1 overflow-y-auto">{recent}</div>
       <div className="p-4">
-        <p className="text-xs leading-5 text-ink-400">
+        <p className="text-ink-400 text-xs leading-5">
           {brand.temporaryNotice}
         </p>
       </div>

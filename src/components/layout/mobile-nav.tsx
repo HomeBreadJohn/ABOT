@@ -8,7 +8,7 @@ import { Sidebar } from "@/components/layout/sidebar";
 
 const MOBILE_NAV_DRAWER_ID = "mobile-nav-drawer";
 
-export function MobileNav() {
+export function MobileNav({ recent }: { recent?: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const closeNavigation = () => setOpen(false);
@@ -53,9 +53,9 @@ export function MobileNav() {
           role="dialog"
           aria-modal="true"
           aria-label="Navigation menu"
-          className="fixed inset-0 z-50 bg-surface"
+          className="bg-surface fixed inset-0 z-50"
         >
-          <div className="flex h-16 items-center justify-end border-b border-ink-200 px-4">
+          <div className="border-ink-200 flex h-16 items-center justify-end border-b px-4">
             <Button
               variant="ghost"
               size="sm"
@@ -65,7 +65,7 @@ export function MobileNav() {
               <X className="h-5 w-5" aria-hidden="true" />
             </Button>
           </div>
-          <Sidebar mobile />
+          <Sidebar mobile recent={recent} />
         </div>
       ) : null}
     </div>

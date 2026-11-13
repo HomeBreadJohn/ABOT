@@ -1,36 +1,46 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { FileText } from "lucide-react";
+
+import { getRecentDocuments } from "@/features/documents/recent-documents";
 
 export interface RecentDocumentNavItem {
   readonly id: string;
   readonly title: string;
-  readonly statusLabel?: string;
 }
 
+/** Presentational list. Safe to render without any data access. */
 export function RecentDocumentsNav({
   documents = [],
+  unavailable = false,
 }: Readonly<{
   documents?: readonly RecentDocumentNavItem[];
+  unavailable?: boolean;
 }>) {
   return (
-    <nav className="sidebar-recent min-h-0 flex-1 px-3 py-4" aria-label="Recent documents">
-      <p className="sidebar-section-label px-3 text-caption font-medium tracking-wider text-ink-subtle uppercase">
+    <nav className="px-3 py-4" aria-label="Recent documents">
+      <p className="text-ink-500 px-3 text-xs font-medium tracking-wider uppercase">
         Recent
       </p>
-      {documents.length > 0 ? (
+      {unavailable ? (
+        <p className="text-ink-500 mt-2 px-3 text-sm">
+          Recent documents unavailable
+        </p>
+      ) : documents.length > 0 ? (
         <ul className="mt-2 space-y-1">
           {documents.map((document) => (
             <li key={document.id}>
               <Link
                 href={`/documents/${document.id}`}
                 title={document.title}
-                className="flex min-h-11 items-center gap-3 rounded-md px-3 text-body-sm text-ink-muted transition-colors duration-150 ease-standard hover:bg-surface-hover hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-focus"
+                className="text-ink-600 hover:bg-ink-100 hover:text-ink-950 flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm transition-colors"
               >
-                <FileText className="h-4 w-4 shrink-0" strokeWidth={1.75} aria-hidden="true" />
-                <span className="sidebar-label min-w-0 truncate">{document.title}</span>
-                {document.statusLabel ? (
-                  <span className="sidebar-label sr-only">Status: {document.statusLabel}</span>
-                ) : null}
+                <FileText
+                  className="h-4 w-4 shrink-0"
+                  strokeWidth={1.75}
+                  aria-hidden="true"
+                />
+                <span className="min-w-0 truncate">{document.title}</span>
               </Link>
             </li>
           ))}
@@ -38,13 +48,32 @@ export function RecentDocumentsNav({
       ) : null}
       <Link
         href="/documents"
-        className="mt-2 flex min-h-11 items-center rounded-md px-3 text-body-sm font-medium text-accent-ink transition-colors duration-150 ease-standard hover:bg-surface-hover focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-focus"
+        className="text-brand-800 hover:bg-ink-100 mt-2 flex min-h-11 items-center rounded-lg px-3 text-sm font-medium transition-colors"
       >
-        <span className="sidebar-label">View all documents</span>
-        <span className="sidebar-collapsed-glyph hidden text-lg" aria-hidden="true">
-          +
-        </span>
+        View all documents
       </Link>
     </nav>
+  );
+}
+
+async function LoadedRecentDocumentsNav() {
+  const result = await getRecentDocuments();
+
+  return result.status === "ok" ? (
+    <RecentDocumentsNav documents={result.documents} />
+  ) : (
+    <RecentDocumentsNav unavailable />
+  );
+}
+
+/**
+ * Server Component. The request-time read sits behind Suspense, so the rest of
+ * the shell does not wait for it. The fallback keeps the "View all" link.
+ */
+export function RecentDocumentsNavSection() {
+  return (
+    <Suspense fallback={<RecentDocumentsNav />}>
+      <LoadedRecentDocumentsNav />
+    </Suspense>
   );
 }
