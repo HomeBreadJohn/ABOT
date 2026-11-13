@@ -30,6 +30,14 @@ import type {
   AnalysisEngineResult,
 } from "@/features/intelligence/services/analysis-engine";
 
+/**
+ * Safe ceiling for a chunk message. Lumen's hard limit is 4000 chars; we budget
+ * chunks to this lower bound so framing + guidance + chunk never trips
+ * AI_CHAT_QUERY_TOO_LONG, leaving a margin for any gateway-side counting
+ * difference (bytes/tokens vs JS string length).
+ */
+const CHAT_MESSAGE_SAFE_LIMIT = 3600;
+
 /** A supporting quote paired with the real page it was found on. */
 export type FindingQuote = { quote: string; page: number };
 
@@ -87,7 +95,21 @@ export class HybridAnalysisEngine implements AnalysisEngine {
 
     // Chunk the pages. NormalizedPage is a structural supertype of
     // ChunkablePage (pageNumber/status/text), so it passes straight through.
-    const { chunks, failedPages } = chunkPages(input.pages);
+    // Size chunks so prompt (fixed framing + guidance) + chunk stays safely
+    // under the 4000-char chat limit — Lumen returns AI_CHAT_QUERY_TOO_LONG
+    // otherwise. Measure the real overhead from an empty-chunk prompt and keep
+    // a margin for any gateway-side counting differences.
+    const promptOverhead = buildChunkAnalysisPrompt(
+      "",
+      categoryModule.promptGuidance,
+    ).length;
+    const chunkMaxChars = Math.max(
+      500,
+      CHAT_MESSAGE_SAFE_LIMIT - promptOverhead,
+    );
+    const { chunks, failedPages } = chunkPages(input.pages, {
+      maxChars: chunkMaxChars,
+    });
 
     // Step 2: one message per chunk, through the session this engine owns.
     const { sessionId } = await this.chat.openSession();
