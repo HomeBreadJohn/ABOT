@@ -1,0 +1,113 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1.1 Retire the duplicate service layer, re-point reusable code to contract types, and add shared plumbing": [
+      {
+        "executionId": "0a8dd4bf-2abc-4d26-b75b-ef40c59452f0",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794535103617
+      },
+      {
+        "executionId": "0a8dd4bf-2abc-4d26-b75b-ef40c59452f0",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794535124734
+      },
+      {
+        "executionId": "bef1bf23-2957-4866-a9eb-1c8968f0e6be",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794537564555
+      }
+    ],
+    "2.1 Build `/documents/new` and the `UploadComposer` with real upload orchestration": [
+      {
+        "executionId": "0a8dd4bf-2abc-4d26-b75b-ef40c59452f0",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794535103687
+      }
+    ],
+    "3.1 Build the `/documents` vault page with filters, delete confirmation and states": [
+      {
+        "executionId": "0a8dd4bf-2abc-4d26-b75b-ef40c59452f0",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794535103816
+      }
+    ],
+    "8.1 Implement `/api/reminders` routes, mapping module, service and client wrappers": [
+      {
+        "executionId": "0a8dd4bf-2abc-4d26-b75b-ef40c59452f0",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794535103888
+      }
+    ],
+    "4.1 Wire `/documents/[documentId]` to real data, polling, processing states, language and header actions": [
+      {
+        "executionId": "0a8dd4bf-2abc-4d26-b75b-ef40c59452f0",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794535103953
+      }
+    ],
+    "5.1 Build the `EvidenceViewer` and wire it into findings and review items": [
+      {
+        "executionId": "0a8dd4bf-2abc-4d26-b75b-ef40c59452f0",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794535104065
+      }
+    ],
+    "7.1 Replace `follow-up-slot.tsx` with the `FollowUpChat` client component": [
+      {
+        "executionId": "0a8dd4bf-2abc-4d26-b75b-ef40c59452f0",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794535104134
+      }
+    ],
+    "9.1 Fill the reminder suggestions slot, build `/reminders`, and add navigation": [
+      {
+        "executionId": "0a8dd4bf-2abc-4d26-b75b-ef40c59452f0",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794535104203
+      }
+    ],
+    "6.1 Replace the demo `CorrectionPanel` with the real word-range correction flow": [
+      {
+        "executionId": "0a8dd4bf-2abc-4d26-b75b-ef40c59452f0",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794535104279
+      }
+    ],
+    "10.1 Build `/dashboard` in product priority order with a read-only reminders helper": [
+      {
+        "executionId": "0a8dd4bf-2abc-4d26-b75b-ef40c59452f0",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794535104397
+      }
+    ],
+    "11.1 Add share routes, recipient lookup interface, Share dialog, \"Shared with me\", and read-only document mode": [
+      {
+        "executionId": "0a8dd4bf-2abc-4d26-b75b-ef40c59452f0",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794535104492
+      }
+    ],
+    "12.1 Audit all real routes, add contrast and boundary tests, write the manual checklist, and run the final scope audit": [
+      {
+        "executionId": "0a8dd4bf-2abc-4d26-b75b-ef40c59452f0",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794535104570
+      }
+    ],
+    "13. Final checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "0a8dd4bf-2abc-4d26-b75b-ef40c59452f0",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794535104647
+      }
+    ],
+    "1. Base cleanup and shared plumbing (Wave 0)": [
+      {
+        "executionId": "bef1bf23-2957-4866-a9eb-1c8968f0e6be",
+        "chatSessionId": "sess_f7561d74-e8f3-4b82-9d6e-b0a202caf57d",
+        "timestamp": 1794537564863
+      }
+    ]
+  }
+}
