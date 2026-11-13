@@ -67,7 +67,7 @@ Stack: Next.js 16 (Cache Components on; `params` and `searchParams` are Promises
     - _Requirements: product.md sections 9.1, 9.3, 9.8, 12_
 
 - [ ] 8. Reminders API and client (Wave 1)
-  - [ ] 8.1 Implement `/api/reminders` routes, mapping module, service and client wrappers
+  - [-] 8.1 Implement `/api/reminders` routes, mapping module, service and client wrappers
     - **Ownership**: Person 1 owns the `/api/reminders` routes (docs/contracts/README.md section 6). Do not edit `src/contracts/**` or `supabase/migrations/**`.
     - **Files**: `src/features/reminders/` (mapping module, service with a deps seam, types), routes `src/app/api/reminders/route.ts` (GET, POST) and `src/app/api/reminders/[reminderId]/route.ts` (PATCH, DELETE), `src/lib/api-client/reminders.ts` exporting `listReminders`, `createReminder`, `updateReminder`, `deleteReminder`, and add those exports to the api-client index. Read `src/contracts/api-reminders.ts` and an existing Person 2 route for conventions before writing.
     - **Contract**: reminder `{id, documentId | null, title, dueAt (iso datetime), status 'ACTIVE' | 'DONE' | 'DISMISSED', notes | null}`; create `{title, dueAt, documentId?, notes?}`; update `{title?, dueAt?, status?, notes?}`; list `{reminders}`; delete `{reminderId}`.
@@ -96,7 +96,7 @@ Stack: Next.js 16 (Cache Components on; `params` and `searchParams` are Promises
     - _Requirements: product.md sections 9.1, 9.2, 9.4, 9.5, 9.6, 12_
 
 - [ ] 5. Evidence navigation (Wave 3)
-  - [ ] 5.1 Build the `EvidenceViewer` and wire it into findings and review items
+  - [-] 5.1 Build the `EvidenceViewer` and wire it into findings and review items
     - **Files**: new files under `src/features/documents/evidence/` (or `report/`) for `EvidenceViewer` and helpers; edit ONLY `finding-item.tsx` and `analysis-report.tsx` among existing files, and keep exported props stable (additive only).
     - **Behaviour**: accessible dialog or side panel (focus trap, Escape closes, focus returns to the opener). Opened from every evidence reference: finding evidence disclosures, review items, and chat citations (expose an `openEvidence(evidenceId)` entry point or context so Task 7 can call it through its `onOpenEvidence` prop; Task 7 has no hard dependency on these files). Shows the page text from `getPage(documentId, pageNumber)` with the cited word range (`wordStart..wordEnd`) highlighted using more than color (for example background plus underline or a mark with a visually-hidden "cited" label). Per-word low-confidence cue (underline or marker plus a legend explaining it), page number, excerpt, source type label ("OCR text" vs "Your correction"), average confidence, and a clear "this page could not be read" state for `analysisMetadata.unavailablePages` and failed pages. Previous / next page controls. "Open original file" link using the existing signed-url route (`/api/documents/:id/signed-url`) opening in a new tab (`rel="noopener noreferrer"`).
     - **Errors/loading**: loading uses `role="status"`; fetch failure shows Task 1 safe copy with retry; never shows raw OCR errors.
@@ -106,7 +106,7 @@ Stack: Next.js 16 (Cache Components on; `params` and `searchParams` are Promises
     - _Requirements: product.md sections 9.4, 9.5, 12_
 
 - [ ] 7. Follow-up chat (Wave 3)
-  - [ ] 7.1 Replace `follow-up-slot.tsx` with the `FollowUpChat` client component
+  - [-] 7.1 Replace `follow-up-slot.tsx` with the `FollowUpChat` client component
     - **Files**: `follow-up-slot.tsx` and new files under `src/features/documents/chat/` only. Before coding, read `src/app/api/documents/[documentId]/conversations/route.ts` and `src/features/conversations/services/conversations.ts` to learn whether opening a conversation is idempotent per (user, document). There is no list-conversations endpoint. If opening is idempotent, call `openConversation` on mount and reuse it; if not, persist the `conversationId` (for example `sessionStorage` keyed by document id) and reuse it, and note the finding in the task report.
     - **Behaviour**: open or reuse the conversation, load history with `listMessages`, suggested prompts from product.md 9.5 (simplify, what if I miss the deadline, which part says that, what to ask the issuing office, explain in Filipino), composer with a 1000-character counter (hard limit 1000, not 4000), send on Enter (Shift+Enter newline) and button, optimistic user message, assistant answer with citations rendered as evidence buttons that call a minimal `onOpenEvidence(evidenceId: string)` prop. `notFoundInDocument` is shown honestly as "This isn't in your document" without guessing or inventing an answer. Loading/typing state, safe errors for 429, 503 and timeouts with a retry that re-sends the same message, disabled composer while sending, scroll-to-latest, `role="log"` with polite announcements. The chat never claims actions were taken (no "I've submitted/booked/paid" language).
     - **Accessibility**: composer labeled, counter announced politely near the limit, buttons at least 44px, focus stays in the composer after send.
@@ -144,7 +144,7 @@ Stack: Next.js 16 (Cache Components on; `params` and `searchParams` are Promises
     - _Requirements: product.md sections 9.3, 9.7, 12_
 
 - [ ] 11. Family sharing foundation (Wave 4)
-  - [ ] 11.1 Add share routes, recipient lookup interface, Share dialog, "Shared with me", and read-only document mode
+  - [-] 11.1 Add share routes, recipient lookup interface, Share dialog, "Shared with me", and read-only document mode
     - **Schema facts**: `public.document_shares(document_id, owner_id, shared_with_user_id, permission 'viewer' | 'editor')`. RLS: owner insert, update, delete (`owns_document`); owner and recipient select; recipients can read the shared document, pages, analyses, findings and evidence but NOT reminders or conversations. `profiles` RLS only exposes the caller's own profile and has no email column, so the user client cannot resolve emails. `listDocuments` filters on `user_id`, so shared documents do not appear in the vault today.
     - **Routes** (new only): `GET/POST /api/documents/[documentId]/shares` and `DELETE /api/documents/[documentId]/shares/[shareId]`, using the user client under RLS (owner only; others get `NOT_FOUND`), strict Zod bodies (`{email, permission}`), no owner ids from the client, conventions as in Task 8. The POST response is uniform whether or not the invited email has an account (no account enumeration). Define the request/response schemas locally in `src/features/sharing/` (the contract is not edited).
     - **Recipient lookup**: ONE server-only interface `resolveRecipientByEmail(email)` in `src/features/sharing/services`, implemented with the Supabase admin API with strict limits (capped pagination, normalised email compare, never returns user data to the client). Comment clearly that this is an interim approach that Person 2 should replace with a SECURITY DEFINER lookup. Rate-limit invites per owner in-process; reject inviting yourself and duplicates (still without leaking account existence for non-self cases).
