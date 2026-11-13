@@ -1,16 +1,16 @@
 "use client";
 
-import { Shell } from "./_proto/shell";
-import { StoreProvider, useStore } from "./_proto/store";
-import { CorrectScreen } from "./_proto/screens/correct";
-import { CrossScreen } from "./_proto/screens/cross";
-import { HomeScreen } from "./_proto/screens/home";
-import { ProcessingScreen } from "./_proto/screens/processing";
-import { RemindersScreen } from "./_proto/screens/reminders";
-import { ReportScreen } from "./_proto/screens/report";
-import { SettingsScreen } from "./_proto/screens/settings";
-import { UploadScreen } from "./_proto/screens/upload";
-import { VaultScreen } from "./_proto/screens/vault";
+import { Shell } from "@/app/prototype/_proto/shell";
+import { StoreProvider, useStore } from "@/app/prototype/_proto/store";
+import { CorrectScreen } from "@/app/prototype/_proto/screens/correct";
+import { CrossScreen } from "@/app/prototype/_proto/screens/cross";
+import { HomeScreen } from "@/app/prototype/_proto/screens/home";
+import { ProcessingScreen } from "@/app/prototype/_proto/screens/processing";
+import { RemindersScreen } from "@/app/prototype/_proto/screens/reminders";
+import { ReportScreen } from "@/app/prototype/_proto/screens/report";
+import { SettingsScreen } from "@/app/prototype/_proto/screens/settings";
+import { UploadScreen } from "@/app/prototype/_proto/screens/upload";
+import { VaultScreen } from "@/app/prototype/_proto/screens/vault";
 
 function Router() {
   const { route } = useStore().state;
@@ -36,7 +36,7 @@ function Router() {
   }
 }
 
-export default function PrototypePage() {
+export default function DashboardPage() {
   return (
     <StoreProvider>
       <Shell>

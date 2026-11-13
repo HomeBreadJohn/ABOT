@@ -5,7 +5,6 @@ import {
   FolderOpen,
   House,
   Plus,
-  RotateCw,
   Settings,
   type LucideIcon,
 } from "lucide-react";
@@ -110,33 +109,13 @@ export function Shell({ children }: { children: ReactNode }) {
             );
           })}
         </nav>
-        <div className="mt-auto rounded-xl bg-(--canvas) p-3 text-sm text-(--ink-2)">
-          <p className="font-semibold text-(--ink)">Prototype</p>
-          <p className="mt-0.5">Sample documents and simulated processing. Nothing is uploaded.</p>
-          <button
-            type="button"
-            onClick={() => dispatch({ type: "reset" })}
-            className="mt-2 inline-flex items-center gap-1.5 font-semibold text-(--care-strong) hover:underline"
-          >
-            <RotateCw className="size-4" aria-hidden />
-            Reset demo
-          </button>
-        </div>
       </aside>
 
       <div className="min-w-0">
-        <header className="sticky top-0 z-30 flex items-center justify-between border-b border-(--line) bg-(--surface)/95 px-4 py-2.5 backdrop-blur lg:hidden">
+        <header className="sticky top-0 z-30 flex items-center border-b border-(--line) bg-(--surface)/95 px-4 py-2.5 backdrop-blur lg:hidden">
           <button type="button" onClick={() => go({ name: "home" })} className="flex items-center gap-2">
             <Mark />
             <span className="text-lg font-bold tracking-[-0.02em]">{BRAND}</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => dispatch({ type: "reset" })}
-            className="inline-flex min-h-10 items-center gap-1.5 rounded-lg px-2 text-sm font-semibold text-(--ink-2)"
-          >
-            <RotateCw className="size-4" aria-hidden />
-            Reset demo
           </button>
         </header>
 

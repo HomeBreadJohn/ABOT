@@ -1,11 +1,10 @@
-import type { Metadata } from "next";
 import { Atkinson_Hyperlegible_Mono, Atkinson_Hyperlegible_Next } from "next/font/google";
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 
 import { getServerAuthState } from "@/lib/supabase/server";
 
-import "./proto.css";
+import "../prototype/proto.css";
 
 const body = Atkinson_Hyperlegible_Next({
   subsets: ["latin", "latin-ext"],
@@ -16,22 +15,17 @@ const ocr = Atkinson_Hyperlegible_Mono({
   variable: "--font-ocr",
 });
 
-export const metadata: Metadata = {
-  title: "Prototype",
-  robots: { index: false },
-};
-
-export default function PrototypeLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default function DashboardLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <div className={`proto ${body.variable} ${ocr.variable}`}>
       <Suspense fallback={null}>
-        <AuthenticatedPrototype>{children}</AuthenticatedPrototype>
+        <AuthenticatedApp>{children}</AuthenticatedApp>
       </Suspense>
     </div>
   );
 }
 
-async function AuthenticatedPrototype({
+async function AuthenticatedApp({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const { claims, hasSessionCookie } = await getServerAuthState();
