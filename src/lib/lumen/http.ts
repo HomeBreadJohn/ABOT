@@ -100,6 +100,7 @@ export async function lumenRequest<T>(opts: LumenRequestOptions<T>): Promise<T> 
 
   let status = 0;
   let errorCode: string | undefined;
+  let gatewayCode: string | undefined;
   try {
     const response = await transport(url, {
       method,
@@ -110,7 +111,7 @@ export async function lumenRequest<T>(opts: LumenRequestOptions<T>): Promise<T> 
     status = response.status;
 
     if (!response.ok) {
-      const gatewayCode = await readGatewayCode(response);
+      gatewayCode = await readGatewayCode(response);
       const error = lumenErrorFromResponse(response.status, gatewayCode);
       errorCode = error.code;
       throw error;
@@ -147,7 +148,8 @@ export async function lumenRequest<T>(opts: LumenRequestOptions<T>): Promise<T> 
     const mark = ok ? "OK  " : "FAIL";
     logger.info(
       `[LUMEN] ${mark} ${operation} status=${status} ${durationMs}ms ` +
-        `credits=${ok ? credits : 0}${errorCode ? ` error=${errorCode}` : ""} ` +
+        `credits=${ok ? credits : 0}${errorCode ? ` error=${errorCode}` : ""}` +
+        `${gatewayCode ? ` gateway=${gatewayCode}` : ""} ` +
         `| session total=${lumenCreditsSpent} credits`,
       { status, durationMs, errorCode, credits },
     );
