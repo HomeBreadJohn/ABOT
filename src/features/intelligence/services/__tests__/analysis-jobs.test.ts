@@ -138,6 +138,32 @@ describe("ANALYZE", () => {
     expect(outcome).toEqual({ kind: "fail", errorCode: "INVALID_ANALYSIS" });
   });
 
+  it("transitions ANALYSIS_FAILED when the engine THROWS (e.g. AI timeout/refusal), not left in ANALYZING", async () => {
+    const { persist, rows } = fakePersist();
+    // The engine throws instead of returning — this is the real failure seen
+    // against a Lumen AI instance that times out or refuses. The document must
+    // land in ANALYSIS_FAILED, not spin in ANALYZING forever.
+    const throwingEngine: AnalysisEngine = {
+      async analyze(): Promise<AnalysisEngineResult> {
+        throw new Error("AI provider timed out");
+      },
+    };
+    const deps = baseDeps({ engine: throwingEngine, persist });
+    const handler = makeAnalyzeHandler(deps);
+
+    const outcome = await handler(job(), {});
+
+    expect(persist).not.toHaveBeenCalled();
+    expect(rows).toHaveLength(0);
+    expect(deps.transition).toHaveBeenLastCalledWith(
+      deps.admin,
+      "doc-1",
+      "ANALYZING",
+      "ANALYSIS_FAILED",
+    );
+    expect(outcome).toEqual({ kind: "fail", errorCode: "ANALYSIS_FAILED" });
+  });
+
   it("leaves exactly one analysis version when run twice with the same key", async () => {
     const { persist, rows } = fakePersist();
     const deps = baseDeps({ persist });

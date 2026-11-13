@@ -1,0 +1,57 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>
+endobj
+4 0 obj
+<< /Length 836 >>
+stream
+BT /F1 11 Tf 1 0 0 1 56 760 Tm 14 TL
+(MERALCO - Manila Electric Company) Tj T*
+(Statement of Account) Tj T*
+() Tj T*
+(Account Name: Juan Dela Cruz) Tj T*
+(Account Number: 1234-5678-90) Tj T*
+(Service Address: 123 Mabini Street, Quezon City) Tj T*
+() Tj T*
+(Billing Period: October 1 - October 31, 2026) Tj T*
+(Statement Date: November 5, 2026) Tj T*
+() Tj T*
+(Previous Reading: 4,250 kWh) Tj T*
+(Present Reading: 4,610 kWh) Tj T*
+(Consumption: 360 kWh) Tj T*
+() Tj T*
+(Generation Charge: PHP 1,820.00) Tj T*
+(Transmission Charge: PHP 210.00) Tj T*
+(Distribution Charge: PHP 310.00) Tj T*
+(Taxes and Other Charges: PHP 110.00) Tj T*
+() Tj T*
+(Amount Due: PHP 2,450.00) Tj T*
+(Due Date: November 20, 2026) Tj T*
+() Tj T*
+(Please pay on or before the due date to avoid disconnection.) Tj T*
+(A surcharge applies to late payments.) Tj T*
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000001128 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+1198
+%%EOF

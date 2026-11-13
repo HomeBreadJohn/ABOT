@@ -80,12 +80,32 @@ export function makeAnalyzeHandler(deps: AnalyzeJobDeps): JobHandler {
       deps.loadLanguage(deps.admin, job.documentId),
     ]);
 
-    const { result, outcome } = await deps.engine.analyze({
-      documentId: job.documentId,
-      pages,
-      corrections,
-      language,
-    });
+    let result: AnalysisResult;
+    let outcome: AnalysisOutcome;
+    try {
+      ({ result, outcome } = await deps.engine.analyze({
+        documentId: job.documentId,
+        pages,
+        corrections,
+        language,
+      }));
+    } catch {
+      // The engine threw (e.g. the AI provider timed out or refused). Move the
+      // document to a terminal ANALYSIS_FAILED so the UI shows a real failure
+      // with a retry, instead of polling ANALYZING forever while the job retries.
+      logger.error("analysis engine failed", {
+        documentId: job.documentId,
+        jobId: job.id,
+        errorCode: "ANALYSIS_FAILED",
+      });
+      await deps.transition(
+        deps.admin,
+        job.documentId,
+        "ANALYZING",
+        "ANALYSIS_FAILED",
+      );
+      return { kind: "fail", errorCode: "ANALYSIS_FAILED" };
+    }
 
     let validated: AnalysisResult;
     try {
