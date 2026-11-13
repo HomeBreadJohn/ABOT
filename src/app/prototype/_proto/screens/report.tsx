@@ -18,8 +18,10 @@ import { useEffect, useRef, useState } from "react";
 
 import type { AnalysisResult, Finding } from "@/contracts/analysis";
 import type { DocumentCategory, ExplanationLanguage } from "@/contracts/common";
+import { getAnalysis, getPage } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 
+import { mergeAnalysisResponse, pageToDocPage } from "../adapters";
 import { StatusPill, useCopy } from "../common";
 import {
   CATEGORY_LABEL,
@@ -28,6 +30,7 @@ import {
   LANGUAGE_LABEL,
   relativeDays,
   uid,
+  type DocPage,
   type ProtoDoc,
 } from "../data";
 import { TabErrorBoundary } from "../error-boundary";
@@ -76,7 +79,7 @@ function LanguagePicker({ className }: { className?: string }) {
 }
 
 export function ReportScreen({ id, tab, focus }: { id: string; tab: ReportTab; focus?: string }) {
-  const { dispatch } = useStore();
+  const { state, dispatch } = useStore();
   const doc = useDoc(id);
   const activeTabRef = useRef<HTMLButtonElement>(null);
   const movedByKey = useRef(false);
@@ -87,6 +90,37 @@ export function ReportScreen({ id, tab, focus }: { id: string; tab: ReportTab; f
     }
     activeTabRef.current?.scrollIntoView({ block: "nearest", inline: "center" });
   }, [tab]);
+
+  // Real documents: load the analysis in the chosen language, then the real OCR
+  // page text for the Original tab. Re-runs when the language changes.
+  const real = doc?.real ?? false;
+  const language = state.language;
+  useEffect(() => {
+    if (!real) return;
+    let active = true;
+    (async () => {
+      try {
+        const res = await getAnalysis(id, language);
+        if (!active || res.state !== "READY") return;
+        const patch = mergeAnalysisResponse(res);
+        const numbers = [
+          ...new Set(res.analysis.evidence.map((e) => e.pageNumber)),
+        ].sort((a, b) => a - b);
+        const pages = (
+          await Promise.all(
+            numbers.map((n) => getPage(id, n).then(pageToDocPage).catch(() => null)),
+          )
+        ).filter((p): p is DocPage => p !== null);
+        if (active) dispatch({ type: "syncDoc", id, patch: { ...patch, pages } });
+      } catch {
+        // Leave the "no report yet" fallback in place on failure.
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [real, id, language, dispatch]);
+
   if (!doc) return <Screen back title="Document not found">It may have been deleted.</Screen>;
   if (!doc.analysis)
     return (

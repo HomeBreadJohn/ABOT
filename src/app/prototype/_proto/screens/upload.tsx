@@ -3,10 +3,21 @@
 import { Camera, FileText, FileUp, Images, ShieldCheck, Trash, TriangleExclamationPoint } from "lucide-react";
 import { useRef, useState } from "react";
 
-import { allowedMimeTypeSchema, MAX_DOCUMENT_SIZE_BYTES } from "@/contracts/common";
+import {
+  allowedMimeTypeSchema,
+  MAX_DOCUMENT_SIZE_BYTES,
+  type AllowedMimeType,
+} from "@/contracts/common";
+import {
+  ApiClientError,
+  completeUpload,
+  registerDocument,
+  uploadToSignedUrl,
+} from "@/lib/api-client";
 
-import { makeUploadedDoc, uid } from "../data";
-import { useStore } from "../store";
+import { uid } from "../data";
+import { listItemToProtoDoc } from "../adapters";
+import { useStore, useToast } from "../store";
 import { Btn, Callout, Panel, Screen } from "../ui";
 
 type Picked = {
@@ -14,15 +25,9 @@ type Picked = {
   name: string;
   size: number;
   type: string;
+  file?: File;
   previewUrl?: string;
   error?: string;
-};
-
-const SAMPLE: Picked = {
-  id: "sample",
-  name: "notice-from-cswdo.jpg",
-  size: 1_840_000,
-  type: "image/jpeg",
 };
 
 function validate(file: { type: string; size: number }): string | undefined {
@@ -39,8 +44,9 @@ function size(bytes: number) {
 
 export function UploadScreen() {
   const { dispatch } = useStore();
+  const toast = useToast();
   const [picked, setPicked] = useState<Picked[]>([]);
-  const [ambiguous, setAmbiguous] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
   const galleryRef = useRef<HTMLInputElement>(null);
@@ -52,20 +58,65 @@ export function UploadScreen() {
       name: f.name,
       size: f.size,
       type: f.type,
+      file: f,
       previewUrl: f.type.startsWith("image/") ? URL.createObjectURL(f) : undefined,
       error: validate(f),
     }));
     setPicked((p) => [...p, ...next]);
   };
 
-  const valid = picked.filter((p) => !p.error);
+  const valid = picked.filter((p) => !p.error && p.file);
 
-  const start = () => {
-    const docs = valid.map((p, i) =>
-      makeUploadedDoc({ id: uid("doc"), filename: p.name, previewUrl: p.previewUrl, ambiguous: ambiguous && i === 0 }),
-    );
-    dispatch({ type: "addDocs", docs });
-    dispatch({ type: "go", route: { name: "processing", id: docs[0].id }, replace: true });
+  /** Real flow: register -> PUT to the signed URL -> complete, then poll on Processing. */
+  const uploadOne = async (p: Picked): Promise<string> => {
+    const file = p.file!;
+    const registered = await registerDocument({
+      originalFilename: p.name,
+      mimeType: p.type as AllowedMimeType,
+      fileSize: p.size,
+    });
+    await uploadToSignedUrl(registered.uploadUrl, file);
+    const completed = await completeUpload(registered.documentId);
+    dispatch({
+      type: "addDocs",
+      docs: [
+        {
+          ...listItemToProtoDoc({
+            documentId: completed.documentId,
+            title: p.name,
+            lifecycle: completed.lifecycle,
+            stage: "RECEIVED",
+            category: null,
+            analysisStatus: "NONE",
+            nextDeadline: null,
+            needsAttention: false,
+            createdAt: new Date().toISOString(),
+          }),
+          previewUrl: p.previewUrl,
+        },
+      ],
+    });
+    return completed.documentId;
+  };
+
+  const start = async () => {
+    if (submitting) return;
+    setSubmitting(true);
+    try {
+      let firstId: string | undefined;
+      for (const p of valid) {
+        const id = await uploadOne(p);
+        firstId ??= id;
+      }
+      if (firstId)
+        dispatch({ type: "go", route: { name: "processing", id: firstId }, replace: true });
+    } catch (e) {
+      const msg =
+        e instanceof ApiClientError ? e.message : "Upload failed. Please try again.";
+      toast(msg);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const accept = allowedMimeTypeSchema.options.join(",");
@@ -98,14 +149,6 @@ export function UploadScreen() {
           </button>
         ))}
       </div>
-
-      <button
-        type="button"
-        onClick={() => setPicked((p) => (p.some((x) => x.id === SAMPLE.id) ? p : [...p, SAMPLE]))}
-        className="mt-3 font-semibold text-(--care-strong) underline"
-      >
-        No file handy? Use a sample government notice
-      </button>
 
       {picked.length > 0 ? (
         <Panel className="mt-6">
@@ -152,18 +195,13 @@ export function UploadScreen() {
         </Callout>
       </div>
 
-      <label className="mt-5 flex items-start gap-3 rounded-xl border border-dashed border-(--line-2) p-3 text-(--ink-2)">
-        <input type="checkbox" checked={ambiguous} onChange={(e) => setAmbiguous(e.target.checked)} className="mt-1 size-5 accent-(--care)" />
-        <span>
-          <span className="font-semibold text-(--ink)">Demo: make the first document hard to sort</span>
-          <br />
-          Shows what happens when ABOT isn&apos;t sure what kind of document it is.
-        </span>
-      </label>
-
       <div className="sticky bottom-20 mt-6 lg:bottom-4">
-        <Btn variant="primary" size="lg" className="w-full" disabled={valid.length === 0} onClick={start}>
-          {valid.length > 1 ? `Explain ${valid.length} documents` : "Explain this document"}
+        <Btn variant="primary" size="lg" className="w-full" disabled={valid.length === 0 || submitting} onClick={start}>
+          {submitting
+            ? "Uploading…"
+            : valid.length > 1
+              ? `Explain ${valid.length} documents`
+              : "Explain this document"}
         </Btn>
       </div>
     </Screen>

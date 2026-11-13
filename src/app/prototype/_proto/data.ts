@@ -63,6 +63,8 @@ export type ProtoDoc = {
   askCategory?: DocumentCategory[];
   previewUrl?: string;
   uploadedByUser?: boolean;
+  /** Backed by the real /api (vault list, real upload). Skips the simulated pipeline. */
+  real?: boolean;
 };
 
 export type Relationship = {

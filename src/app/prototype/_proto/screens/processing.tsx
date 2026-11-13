@@ -4,8 +4,10 @@ import { Check, CircleQuestionMark, FileX, LoaderCircle } from "lucide-react";
 import { useEffect } from "react";
 
 import type { DocumentCategory } from "@/contracts/common";
+import { getAnalysis } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 
+import { mergeAnalysisResponse } from "../adapters";
 import { CATEGORY_LABEL } from "../data";
 import { useDoc, useStore } from "../store";
 import { Btn, Callout, Panel, Screen } from "../ui";
@@ -23,6 +25,29 @@ export function ProcessingScreen({ id }: { id: string }) {
   const doc = useDoc(id);
 
   const done = doc && !["UPLOADED", "OCR_PROCESSING", "OCR_READY", "OCR_PARTIAL", "ANALYZING", "OCR_FAILED", "ANALYSIS_FAILED"].includes(doc.lifecycle);
+
+  // Real documents: poll the analysis every 2s until READY or FAILED. The `done`
+  // effect below handles routing once the merged analysis lands. Stops on unmount.
+  const real = doc?.real ?? false;
+  useEffect(() => {
+    if (!real) return;
+    let active = true;
+    const poll = async () => {
+      try {
+        const res = await getAnalysis(id);
+        if (!active) return;
+        dispatch({ type: "syncDoc", id, patch: mergeAnalysisResponse(res) });
+      } catch {
+        // Transient errors: keep polling; a persistent failure surfaces via FAILED.
+      }
+    };
+    void poll();
+    const t = setInterval(poll, 2000);
+    return () => {
+      active = false;
+      clearInterval(t);
+    };
+  }, [real, id, dispatch]);
 
   useEffect(() => {
     if (!doc || !done || !doc.analysis) return;

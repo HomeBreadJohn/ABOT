@@ -11,7 +11,9 @@ import {
 
 import type { AnalysisResult } from "@/contracts/analysis";
 import type { DocumentCategory, ExplanationLanguage } from "@/contracts/common";
+import { listDocuments } from "@/lib/api-client";
 
+import { listItemToProtoDoc } from "./adapters";
 import {
   applyCorrection,
   finalLifecycle,
@@ -56,6 +58,10 @@ export type Action =
   | { type: "back" }
   | { type: "tick" }
   | { type: "addDocs"; docs: ProtoDoc[] }
+  /** Replace the vault with real documents loaded from the API on mount. */
+  | { type: "replaceDocs"; docs: ProtoDoc[] }
+  /** Merge a partial update onto a real document (polling, analysis, pages). */
+  | { type: "syncDoc"; id: string; patch: Partial<ProtoDoc> }
   | { type: "setCategory"; id: string; category: DocumentCategory }
   | { type: "recheckAs"; id: string; category: DocumentCategory }
   | { type: "retryOcr"; id: string }
@@ -108,6 +114,8 @@ function updateDoc(
 
 /** Advance one simulated pipeline step. Mirrors the real lifecycle order. */
 function advance(d: ProtoDoc): ProtoDoc {
+  // Real documents are driven by API polling, not the simulated pipeline.
+  if (d.real) return d;
   if (!PROCESSING_LIFECYCLES.has(d.lifecycle)) return d;
   switch (d.lifecycle) {
     case "UPLOADED":
@@ -170,6 +178,14 @@ function reducer(state: State, action: Action): State {
       return { ...state, docs: state.docs.map(advance) };
     case "addDocs":
       return { ...state, docs: [...action.docs, ...state.docs] };
+    case "replaceDocs": {
+      // Keep sample docs only as a fallback when the real vault is empty.
+      const real = action.docs;
+      const samples = state.docs.filter((d) => !d.real);
+      return { ...state, docs: real.length > 0 ? real : samples };
+    }
+    case "syncDoc":
+      return updateDoc(state, action.id, (d) => ({ ...d, ...action.patch }));
     case "setCategory":
       return updateDoc(state, action.id, (d) => ({
         ...d,
@@ -277,6 +293,19 @@ const StoreContext = createContext<{
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initialState);
+
+  // Load the real vault on mount. On failure, keep the prototype sample docs.
+  useEffect(() => {
+    let active = true;
+    listDocuments()
+      .then((res) => {
+        if (active) dispatch({ type: "replaceDocs", docs: res.documents.map(listItemToProtoDoc) });
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const busy = state.docs.some(
     (d) => PROCESSING_LIFECYCLES.has(d.lifecycle) && !d.askCategory,
