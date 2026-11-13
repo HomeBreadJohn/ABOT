@@ -173,13 +173,64 @@ Stack: Next.js 16 (Cache Components on; `params` and `searchParams` are Promises
   - Run `npm run typecheck`, `npm run lint`, `npm run test` and `npm run build`.
   - Report these open questions for Person 2: (1) reminders status `DONE` vs DB `SENT` and the missing `reminder_at` in the contract; (2) email lookup for shares needs a SECURITY DEFINER function to replace the interim admin lookup; (3) `listDocuments` excludes shared documents; (4) there is no conversation listing endpoint.
 
+## Execution Phases
+
+Execution is organized into four phases after the completed base cleanup. Tasks inside a phase run in parallel because their file sets are disjoint. Phases run strictly in order. The wave ids in the dependency graph map to phases as follows: wave 0 is Phase 0, wave 1 is Phase A, wave 2 is Phase B, wave 3 is Phase C, wave 4 is Phase D. Any "(Wave N)" label in a task title is a historical label from the earlier six-wave plan; the phases below and the dependency graph are authoritative for execution order.
+
+### Phase 0 (done): Base cleanup and shared plumbing
+
+- **Tasks**: 1.1.
+- **Parallelism**: not applicable, a single task. It is already completed.
+- **Starts when**: nothing is required.
+- **Exit gate**: met. Typecheck is green and the shared plumbing (language mapping, safe messages, `useApiError`) is available to every later task.
+
+### Phase A: Core loop (parallel)
+
+- **Tasks**: 2.1 Upload, 3.1 Vault, 4.1 Document page, 8.1 Reminders API.
+- **Why parallel**: 2.1 owns `/documents/new` and `src/features/documents/{upload,hooks,components}` for the composer. 3.1 owns the `/documents` vault page and its vault components and view-models. 4.1 owns `/documents/[documentId]`, the report wiring, the polling hook and the three slot files. 8.1 owns `src/features/reminders/` (mapping, service, types), `src/app/api/reminders/**` and `src/lib/api-client/reminders.ts`. Shared surfaces are limited to additive exports.
+- **Before the phase starts**: Phase 0 is committed, and typecheck, lint and test are green on the branch.
+- **Exit gate**: typecheck, lint, test and build all pass. The orchestrator runs the build once. There is one commit per task, and the phase is pushed at the end.
+
+### Phase B: Report depth and home (parallel)
+
+- **Tasks**: 5.1 Evidence viewer, 7.1 Follow-up chat, 9.1 Reminders UI, 10.1 Dashboard.
+- **Why parallel**: 5.1 owns `src/features/documents/evidence/` plus `finding-item.tsx` and `analysis-report.tsx`. 7.1 owns `follow-up-slot.tsx` and `src/features/documents/chat/`. 9.1 owns `reminder-suggestions-slot.tsx`, `/reminders`, `src/features/reminders/components/**` and the navigation files `sidebar.tsx` and `mobile-nav.tsx`. 10.1 owns `src/app/(dashboard)/dashboard/page.tsx`, `src/features/dashboard/**` and one new read-only helper file under `src/features/reminders/services/`.
+- **Before the phase starts**: Phase A is committed and pushed, and typecheck, lint, test and build are green. The slot files from 3.1 and 4.1 and the reminders API from 8.1 must exist.
+- **Exit gate**: typecheck, lint, test and build all pass. The orchestrator runs the build once. There is one commit per task, and the phase is pushed at the end.
+
+### Phase C: Act and share (parallel)
+
+- **Tasks**: 6.1 Corrections, 11.1 Sharing.
+- **Why parallel**: 6.1 owns `src/features/documents/corrections/`, the correction hook point in `analysis-report.tsx` and the removal of `correction-panel.tsx`. 11.1 owns `src/features/sharing/**`, the new share routes, `share-slot.tsx`, `shared-with-me-slot.tsx` and the read-only flag wiring in `document-view.tsx`. 11.1 must not edit `analysis-report.tsx`.
+- **Before the phase starts**: Phase B is committed and pushed, and typecheck, lint, test and build are green. The evidence work (5.1) must be merged so 6.1 can edit `analysis-report.tsx` without conflicts.
+- **Exit gate**: typecheck, lint, test and build all pass. The orchestrator runs the build once. There is one commit per task, and the phase is pushed at the end.
+
+### Phase D: Release (sequential)
+
+- **Tasks**: 12.1 Accessibility, responsive and final audit, then 13 final checkpoint.
+- **Why sequential**: 12.1 audits and makes small fixes across all real routes, so it must not overlap with any other task. Task 13 is the checkpoint parent and is not a leaf, so it is not in the dependency graph. It runs after 12.1.
+- **Before the phase starts**: Phase C is committed and pushed, and typecheck, lint, test and build are green.
+- **Exit gate**: typecheck, lint, test and build all pass, the manual checklist file exists, and the scope audit lists zero forbidden-path changes. There is one commit per task, and the branch is pushed at the end.
+
 ## Notes
 
-- Tasks run in waves. Tasks in the same wave touch disjoint files and may run in parallel. Run `npm run build` once each wave completes.
+- Tasks run in phases (see Execution Phases). Tasks in the same phase touch disjoint files and run in parallel. The orchestrator runs `npm run build` once at the end of each phase.
 - Per-task verification commands: `npm run typecheck`, `npm run lint`, `npm run test`. Use `npx prettier --write <touched files>` only; never run repo-wide formatting.
 - Each functional task owns its tests; there are no stand-alone or optional test tasks, and the design has no Correctness Properties section, so no property-based tests are planned.
-- Slot files (`reminder-suggestions-slot.tsx`, `follow-up-slot.tsx`, `share-slot.tsx`, `shared-with-me-slot.tsx`) let later tasks avoid editing sibling files. Tasks 5 and 6 are the only ones editing `finding-item.tsx` and `analysis-report.tsx`, in separate waves.
 - The leaf id of each task is `N.1`; the dependency graph lists leaf ids only.
+
+### Cross-task rules
+
+1. Tasks in the same phase must not edit each other's files. If a needed file belongs to a sibling task, use the slot files created by Task 4.1 (`reminder-suggestions-slot.tsx`, `follow-up-slot.tsx`, `share-slot.tsx`) and Task 3.1 (`shared-with-me-slot.tsx`).
+2. Parallel agents must NOT run `npm run build` (Next.js allows only one build at a time and it fails with a lock error). The orchestrator runs the build once at the end of each phase. Parallel agents run typecheck, lint and their own targeted vitest files, and ignore failures that originate in files owned by a sibling task, naming them in their report instead of fixing them.
+3. Read-only and permissions: Task 6.1 adds an optional `canCorrect?: boolean` prop (default true) to `AnalysisReport` and hides all correction controls when false. Task 11.1 must NOT edit `analysis-report.tsx`; it passes `canCorrect={false}` and the other read-only flags from `document-view.tsx` only.
+4. Task 4.1 must expose, from `document-view.tsx` and the report, the props the later tasks need: `readOnly` (boolean) passed down to every slot. The `onOpenEvidence(evidenceId)` plumbing is added by Task 5.1 inside `analysis-report.tsx` and `finding-item.tsx` only.
+5. Task 9.1 owns edits to `sidebar.tsx` and `mobile-nav.tsx` (adding the Reminders link); no other task edits those files.
+6. Task 10.1 owns `src/app/(dashboard)/dashboard/page.tsx` and `src/features/dashboard/**`; it may only ADD new files under `src/features/reminders/` (a read-only helper), never edit Task 8.1's files.
+7. One commit per task by the orchestrator, conventional message, path-scoped staging.
+
+### Other notes
+
 - There is no `.env.local`, so nothing can be run against live Supabase in this environment; reports must say that instead of claiming a live run.
 - Requirement references point at sections of `product.md`, which is read-only.
 
@@ -189,11 +240,12 @@ Stack: Next.js 16 (Cache Components on; `params` and `searchParams` are Promises
 {
   "waves": [
     { "id": 0, "tasks": ["1.1"] },
-    { "id": 1, "tasks": ["2.1", "3.1", "8.1"] },
-    { "id": 2, "tasks": ["4.1"] },
-    { "id": 3, "tasks": ["5.1", "7.1", "9.1"] },
-    { "id": 4, "tasks": ["6.1", "10.1", "11.1"] },
-    { "id": 5, "tasks": ["12.1"] }
+    { "id": 1, "tasks": ["2.1", "3.1", "4.1", "8.1"] },
+    { "id": 2, "tasks": ["5.1", "7.1", "9.1", "10.1"] },
+    { "id": 3, "tasks": ["6.1", "11.1"] },
+    { "id": 4, "tasks": ["12.1"] }
   ]
 }
 ```
+
+Task 13 (final checkpoint) is a top-level parent task, not a leaf, so it is not in the graph. It runs after wave 4 completes.
