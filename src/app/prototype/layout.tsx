@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
 import { Atkinson_Hyperlegible_Mono, Atkinson_Hyperlegible_Next } from "next/font/google";
+import { Suspense } from "react";
+import { redirect } from "next/navigation";
+
+import { getServerAuthState } from "@/lib/supabase/server";
 
 import "./proto.css";
 
@@ -18,5 +22,23 @@ export const metadata: Metadata = {
 };
 
 export default function PrototypeLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <div className={`proto ${body.variable} ${ocr.variable}`}>{children}</div>;
+  return (
+    <div className={`proto ${body.variable} ${ocr.variable}`}>
+      <Suspense fallback={null}>
+        <AuthenticatedPrototype>{children}</AuthenticatedPrototype>
+      </Suspense>
+    </div>
+  );
+}
+
+async function AuthenticatedPrototype({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
+  const { claims, hasSessionCookie } = await getServerAuthState();
+
+  if (!claims) {
+    redirect(hasSessionCookie ? "/login?reason=session-expired" : "/login");
+  }
+
+  return <>{children}</>;
 }

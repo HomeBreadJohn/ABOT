@@ -26,7 +26,7 @@ function attentionReason(d: ProtoDoc): string {
     case "OCR_FAILED":
       return "We couldn't read this file. You can try again.";
     case "ANALYSIS_FAILED":
-      return "The report couldn't be prepared. You can try again.";
+      return "We couldn't prepare this report. You can try again.";
     default:
       return "";
   }

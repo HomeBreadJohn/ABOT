@@ -95,7 +95,7 @@ export function Shell({ children }: { children: ReactNode }) {
                 aria-current={active ? "page" : undefined}
                 onClick={() => go(item.route)}
                 className={cn(
-                  "flex min-h-11 items-center gap-3 rounded-lg px-3 text-left font-semibold",
+                  "flex min-h-11 items-center gap-3 rounded-lg px-3 text-left font-semibold text-[0.903rem]",
                   active ? "bg-(--care-wash) text-(--care-strong)" : "text-(--ink-2) hover:bg-(--canvas)",
                 )}
               >
@@ -187,7 +187,7 @@ function TabButton({ item, active, onClick, badge }: { item: NavItem; active: bo
       onClick={onClick}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "relative flex min-h-16 flex-col items-center justify-center gap-0.5 text-[0.8125rem]",
+        "relative flex min-h-16 flex-col items-center justify-center gap-0.5 text-[0.69rem]",
         active ? "font-bold text-(--care-strong)" : "font-semibold text-(--ink-3)",
       )}
     >

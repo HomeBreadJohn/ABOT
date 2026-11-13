@@ -631,7 +631,7 @@ function answer(q: string, a: AnalysisResult, lang: ExplanationLanguage): Omit<M
   }
   if (/simple|simpler|explain/.test(s)) return { text: a.overview + " " + (watch ? `The main thing to watch: ${watch.title.toLowerCase()}.` : ""), evidenceIds: watch?.evidenceIds.slice(0, 1) };
   return {
-    text: "I can only answer from what's in this document, and I couldn't find that here. Try asking about the amounts, dates, or what you need to do.",
+    text: "We can only answer from what's in this document, and we couldn't find that here. Try asking about the amounts, dates, or what you need to do.",
   };
 }
 
@@ -668,7 +668,7 @@ function Ask({ doc, a, onEvidence }: { doc: ProtoDoc; a: AnalysisResult; onEvide
   return (
     <div>
       <Callout tone="low" icon={MessageCircle} title={`Ask about ${doc.title.toLowerCase()}`}>
-        Answers come only from this document and point to the line they use. If it isn&apos;t in the document, ABOT says so.
+        Answers come only from this document and point to the line they use. If it isn&apos;t in the document, we&apos;ll tell you.
       </Callout>
 
       <div className="mt-5 space-y-3" aria-live="polite">

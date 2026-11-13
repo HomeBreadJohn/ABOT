@@ -74,15 +74,15 @@ export function ProcessingScreen({ id }: { id: string }) {
         <Callout
           tone="critical"
           icon={FileX}
-          title={doc.lifecycle === "OCR_FAILED" ? "We couldn't read this document" : "The report couldn't be prepared"}
+          title={doc.lifecycle === "OCR_FAILED" ? "We couldn't read this document" : "We couldn't prepare this report"}
           action={
             <Btn variant="primary" onClick={() => dispatch({ type: "retryOcr", id: doc.id })}>
               Try again
             </Btn>
           }
         >
-          {doc.error ?? "Something went wrong."} If it fails again, retake the photo in brighter light with all four corners showing.
-          No report is shown until it succeeds.
+          {doc.error ?? (doc.lifecycle === "OCR_FAILED" ? "We couldn't turn this file into text we can check." : "We read the file but couldn't finish the report.")} If it fails again, retake the photo in brighter light with all four corners showing.
+          We won&apos;t show a report until it succeeds.
         </Callout>
       ) : null}
 
@@ -161,7 +161,7 @@ export function ProcessingScreen({ id }: { id: string }) {
 
       {!failed ? (
         <div className="mt-6">
-          <Btn onClick={() => dispatch({ type: "go", route: { name: "home" } })}>Go to Home while I wait</Btn>
+          <Btn onClick={() => dispatch({ type: "go", route: { name: "home" } })}>Go to Home while we work</Btn>
         </div>
       ) : null}
     </Screen>

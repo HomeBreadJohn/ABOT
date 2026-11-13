@@ -39,7 +39,7 @@ export function Sidebar({ mobile = false }: { mobile?: boolean }) {
           <Link
             key={href}
             href={href}
-            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-ink-600 transition-colors hover:bg-ink-100 hover:text-ink-950"
+            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[0.744rem] font-medium text-ink-600 transition-colors hover:bg-ink-100 hover:text-ink-950"
           >
             <Icon className="h-4 w-4" aria-hidden="true" />
             {label}
