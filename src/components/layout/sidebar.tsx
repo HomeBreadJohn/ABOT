@@ -1,73 +1,56 @@
-import { Plus } from "lucide-react";
 import Link from "next/link";
+import { FileText, LayoutDashboard, Settings } from "lucide-react";
 
-import { AccountMenu } from "@/components/layout/account-menu";
-import { RecentDocumentsNav, type RecentDocumentNavItem } from "@/components/layout/recent-documents-nav";
-import {
-  SidebarNavLink,
-  type SidebarNavIcon,
-} from "@/components/layout/sidebar-nav-link";
 import { brand } from "@/config/brand";
+import { Separator } from "@/components/ui/separator";
 
-const navigation: ReadonlyArray<{
-  href: string;
-  label: string;
-  icon: SidebarNavIcon;
-}> = [
-  { href: "/dashboard", label: "Home", icon: "home" },
-  { href: "/documents", label: "Documents", icon: "documents" },
+const navigation = [
+  { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
+  { href: "/documents", label: "Documents", icon: FileText },
+  { href: "/settings", label: "Settings", icon: Settings },
 ];
 
-export function Sidebar({
-  recentDocuments,
-  displayName,
-  id = "sidebar-navigation",
-  instanceId = "desktop",
-}: Readonly<{
-  recentDocuments?: readonly RecentDocumentNavItem[];
-  displayName?: string | null;
-  id?: string;
-  instanceId?: string;
-}>) {
+export function Sidebar({ mobile = false }: { mobile?: boolean }) {
   return (
     <aside
-      id={id}
-      className="sidebar-content flex min-h-0 w-full flex-1 flex-col bg-surface-sunken"
+      className={
+        mobile
+          ? "flex h-full w-full flex-col bg-surface"
+          : "hidden border-r border-ink-200 bg-surface lg:flex lg:w-64 lg:flex-col"
+      }
     >
-      <div className="sidebar-brand-row flex h-16 shrink-0 items-center px-4">
+      <div className="flex h-16 items-center px-5">
         <Link
           href="/dashboard"
-          className="flex min-w-0 items-center gap-2.5 rounded-md focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-focus"
+          className="flex items-center gap-2.5"
           aria-label={`${brand.name} home`}
         >
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-accent text-sm font-semibold text-on-accent">
-            {brand.name.slice(0, 1).toUpperCase()}
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-500 text-sm font-bold text-ink-950">
+            A
           </span>
-          <span className="sidebar-label min-w-0 truncate font-semibold tracking-tight text-ink">
+          <span className="font-semibold tracking-tight text-ink-950">
             {brand.name}
           </span>
         </Link>
       </div>
-
-      <div className="px-3 pb-3">
-        <Link
-          href="/documents/new"
-          className="flex min-h-11 items-center justify-center gap-2 rounded-md bg-accent px-3 text-body-sm font-medium text-on-accent transition-colors duration-150 ease-standard hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-focus"
-          title="New upload"
-        >
-          <Plus className="h-5 w-5 shrink-0" strokeWidth={1.75} aria-hidden="true" />
-          <span className="sidebar-label">New upload</span>
-        </Link>
-      </div>
-
-      <nav className="space-y-1 px-3" aria-label="Primary navigation">
-        {navigation.map(({ href, label, icon }) => (
-          <SidebarNavLink key={href} href={href} label={label} icon={icon} />
+      <Separator />
+      <nav className="flex-1 space-y-1 p-3" aria-label="Main navigation">
+        {navigation.map(({ href, label, icon: Icon }) => (
+          <Link
+            key={href}
+            href={href}
+            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-ink-600 transition-colors hover:bg-ink-100 hover:text-ink-950"
+          >
+            <Icon className="h-4 w-4" aria-hidden="true" />
+            {label}
+          </Link>
         ))}
       </nav>
-
-      <RecentDocumentsNav documents={recentDocuments} />
-      <AccountMenu displayName={displayName} idSuffix={instanceId} />
+      <div className="p-4">
+        <p className="text-xs leading-5 text-ink-400">
+          {brand.temporaryNotice}
+        </p>
+      </div>
     </aside>
   );
 }

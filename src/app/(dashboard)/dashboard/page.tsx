@@ -1,10 +1,9 @@
-import { Suspense } from "react";
 import { ArrowUpRight, FileText, ListChecks, Upload } from "lucide-react";
 import Link from "next/link";
 
-import { Greeting } from "@/features/dashboard/components/greeting";
+import { brand } from "@/config/brand";
+import { PageHeader } from "@/components/shared/page-header";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -12,8 +11,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { platformPreviewData } from "@/features/platform/view-data";
-import { adaptPresentationValue } from "@/lib/presentation";
 
 const areas = [
   {
@@ -38,30 +35,16 @@ const areas = [
 
 export default function DashboardPage() {
   return (
-    <div className="mx-auto max-w-6xl min-w-0">
-      <div className="mb-6 max-w-2xl min-w-0 sm:mb-8">
-        <p className="text-body-sm text-ink-muted mb-2 font-medium">
-          Workspace
-        </p>
-        <Suspense
-          fallback={
-            <h1 className="text-display text-ink font-serif font-medium tracking-tight">
-              Welcome back
-            </h1>
-          }
-        >
-          <Greeting />
-        </Suspense>
-        <p className="text-ink-muted mt-2">
-          This foundation is ready for document-centric workflows as the product
-          direction becomes clearer.
-        </p>
-      </div>
-      <Card className="mb-6 border-slate-300 bg-slate-950 text-white">
-        <CardContent className="flex flex-col gap-5 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+    <div className="mx-auto max-w-6xl">
+      <PageHeader
+        title={`Welcome to ${brand.name}`}
+        description="This foundation is ready for document-centric workflows as the product direction becomes clearer."
+      />
+      <Card className="mb-6 border-transparent bg-ink-950 text-white">
+        <CardContent className="flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="font-medium">Your workspace is ready.</p>
-            <p className="mt-1 text-sm text-slate-300">
+            <p className="mt-1 text-sm text-ink-300">
               Product workflows and AI processing will be added after
               requirements are finalized.
             </p>
@@ -74,61 +57,12 @@ export default function DashboardPage() {
           </Button>
         </CardContent>
       </Card>
-      <Card className="mb-6">
-        <CardHeader>
-          <div className="flex flex-wrap items-center gap-2">
-            <CardTitle as="h2">Sample foundation preview</CardTitle>
-            <Badge variant="neutral" cue="◇">
-              {platformPreviewData.contentLabel}
-            </Badge>
-          </div>
-          <CardDescription>
-            Local presentation examples only. This is not a completed user
-            analysis.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <dl className="grid gap-3 sm:grid-cols-3">
-            {platformPreviewData.items.map((item) => {
-              const presentation = adaptPresentationValue(item.descriptor);
-              const badgeVariant =
-                presentation.tone === "positive"
-                  ? "success"
-                  : presentation.tone === "caution" ||
-                      presentation.tone === "critical"
-                    ? "warning"
-                    : "neutral";
-
-              return (
-                <div
-                  key={item.title}
-                  className="rounded-xl border border-slate-200 bg-slate-50 p-4"
-                >
-                  <dt className="text-sm font-medium text-slate-600">
-                    {item.title}
-                  </dt>
-                  <dd className="mt-2 flex flex-wrap items-center gap-2">
-                    {presentation.categoryLabel ? (
-                      <span className="text-xs font-semibold tracking-wide text-slate-500 uppercase">
-                        {presentation.categoryLabel}
-                      </span>
-                    ) : null}
-                    <Badge variant={badgeVariant} cue={presentation.cue}>
-                      {presentation.label}
-                    </Badge>
-                  </dd>
-                </div>
-              );
-            })}
-          </dl>
-        </CardContent>
-      </Card>
-      <div className="grid min-w-0 gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-3">
         {areas.map(({ title, description, icon: Icon, href }) => (
           <Card key={title}>
             <CardHeader>
-              <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100">
-                <Icon className="h-5 w-5 text-slate-700" aria-hidden="true" />
+              <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-brand-100 text-brand-800">
+                <Icon className="h-5 w-5" aria-hidden="true" />
               </div>
               <CardTitle>{title}</CardTitle>
               <CardDescription>{description}</CardDescription>

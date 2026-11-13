@@ -6,31 +6,25 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { PreferredLanguageSettings } from "@/features/profile/components/preferred-language-settings";
-import { getCurrentProfile } from "@/features/profile/services/profile-service";
-import { DEFAULT_PREFERRED_LANGUAGE } from "@/features/profile/types";
 
-export default async function SettingsPage() {
-  const profile = await getCurrentProfile();
-  const initialLanguage =
-    profile?.preferredLanguage ?? DEFAULT_PREFERRED_LANGUAGE;
-
+export default function SettingsPage() {
   return (
-    <div className="mx-auto max-w-4xl min-w-0">
+    <div className="mx-auto max-w-4xl">
       <PageHeader
-        eyebrow="Workspace"
         title="Settings"
-        description="Choose the language you prefer for future document explanations."
+        description="Account and workspace preferences will be added as the product requirements are finalized."
       />
       <Card>
         <CardHeader>
-          <CardTitle as="h2">Preferences</CardTitle>
+          <CardTitle>Preferences</CardTitle>
           <CardDescription>
-            Your preferred language is saved to your profile.
+            There are no configurable preferences yet.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <PreferredLanguageSettings initialLanguage={initialLanguage} />
+          <div className="rounded-xl border border-dashed border-ink-300 bg-ink-50 p-6 text-sm text-ink-500">
+            Settings are intentionally limited in this foundation release.
+          </div>
         </CardContent>
       </Card>
     </div>
