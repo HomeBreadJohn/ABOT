@@ -9,6 +9,9 @@ import { LumenError, lumenErrorFromResponse } from "@/lib/lumen/errors";
 
 const DEFAULT_TIMEOUT_MS = 30_000;
 
+/** Running Lumen credit total for the current server process (console trace). */
+let lumenCreditsSpent = 0;
+
 /** Pluggable fetch so unit tests run without a network. Defaults to global fetch. */
 export type LumenTransport = (
   url: string,
@@ -134,12 +137,20 @@ export async function lumenRequest<T>(opts: LumenRequestOptions<T>): Promise<T> 
     throw new LumenError("UNAVAILABLE");
   } finally {
     clearTimeout(timer);
-    logger.info(`lumen ${operation}`, {
-      status,
-      durationMs: Date.now() - started,
-      errorCode,
-      credits: CREDIT_COST[operation],
-    });
+    const durationMs = Date.now() - started;
+    const credits = CREDIT_COST[operation];
+    const ok = !errorCode && status >= 200 && status < 300;
+    lumenCreditsSpent += ok ? credits : 0;
+    // Human-readable, allowlisted trace so a live Lumen run is easy to watch in
+    // the dev terminal. The message carries no document content, AI text, or
+    // secrets; routed through `logger` (the one sanctioned console channel).
+    const mark = ok ? "OK  " : "FAIL";
+    logger.info(
+      `[LUMEN] ${mark} ${operation} status=${status} ${durationMs}ms ` +
+        `credits=${ok ? credits : 0}${errorCode ? ` error=${errorCode}` : ""} ` +
+        `| session total=${lumenCreditsSpent} credits`,
+      { status, durationMs, errorCode, credits },
+    );
   }
 }
 
